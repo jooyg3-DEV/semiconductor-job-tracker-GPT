@@ -50,8 +50,7 @@ class GoogleSheetsClient:
         ws.clear()
         ws.update(values=values, range_name="A1")
         self._basic_format(ws)
-        if len(values) > 1:
-            self._sort_active_sheet(ws)
+        self._sort_active_sheet(ws)
 
     def write_closed_records(self, sheet_key: str, records: list[JobRecord]) -> None:
         title = f"종료-{sheet_key}"
@@ -71,6 +70,7 @@ class GoogleSheetsClient:
         })
 
     def _sort_active_sheet(self, ws) -> None:
+        row_count = max(2, ws.row_count)
         body = {
             "requests": [
                 {
@@ -78,6 +78,7 @@ class GoogleSheetsClient:
                         "range": {
                             "sheetId": ws.id,
                             "startRowIndex": 1,
+                            "endRowIndex": row_count,
                             "startColumnIndex": 0,
                             "endColumnIndex": 11,
                         },
@@ -88,9 +89,7 @@ class GoogleSheetsClient:
                 }
             ]
         }
-        self.service.spreadsheets().batchUpdate(
-            spreadsheetId=self.spreadsheet_id, body=body
-        ).execute()
+        self.service.spreadsheets().batchUpdate(spreadsheetId=self.spreadsheet_id, body=body).execute()
 
     def _apply_strikethrough(self, ws, start_row: int, end_row: int) -> None:
         body = {

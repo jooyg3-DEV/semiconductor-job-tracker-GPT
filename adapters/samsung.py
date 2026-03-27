@@ -1,46 +1,67 @@
-
 from __future__ import annotations
 
 import re
+from urllib.parse import urlparse
+
 import requests
 from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 
 from adapters.base import BaseAdapter
-from core.models import JobRecord
-from core.utils import clean_text, extract_education_and_experience, infer_job_function, is_phd_preferred, join_nonempty
+from adapters.playwright_utils import USER_AGENT, build_record_from_detail, safe_goto
 
 
 class SamsungDSAdapter(BaseAdapter):
-    def fetch(self) -> list[JobRecord]:
-        r = requests.get(self.source_cfg.url, timeout=60, headers={"User-Agent": "Mozilla/5.0"})
-        r.raise_for_status()
-        soup = BeautifulSoup(r.text, "lxml")
-        records: list[JobRecord] = []
+    def fetch(self):
+        candidates: list[tuple[str, str]] = []
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page(user_agent=USER_AGENT)
+            safe_goto(page, self.source_cfg.url)
+            page.wait_for_timeout(3000)
+            sels = ["a[href*='?no=']", "a[href*='/hr/?no=']", "a[href*='notice']"]
+            seen = set()
+            for sel in sels:
+                loc = page.locator(sel)
+                for i in range(min(loc.count(), 100)):
+                    a = loc.nth(i)
+                    try:
+                        href = a.get_attribute("href") or ""
+                        text = a.inner_text().strip()
+                    except Exception:
+                        continue
+                    if not href:
+                        continue
+                    if href.startswith("/"):
+                        href = f"https://{urlparse(self.source_cfg.url).netloc}{href}"
+                    if href in seen:
+                        continue
+                    seen.add(href)
+                    candidates.append((text, href))
+            browser.close()
 
-        for a in soup.select('a[href*="?no="], a[href*="/hr/?no="]'):
-            title = clean_text(a.get_text(" ", strip=True))
-            href = a.get("href", "")
-            if not title or not href:
+        headers = {"User-Agent": USER_AGENT}
+        records = []
+        for text, url in candidates[:30]:
+            try:
+                r = requests.get(url, headers=headers, timeout=45)
+                r.raise_for_status()
+            except Exception:
                 continue
-            url = href if href.startswith("http") else f"https://www.samsungcareers.com{href}"
-            parent = a.find_parent(["tr", "li", "div"])
-            raw = clean_text(parent.get_text(" ", strip=True)) if parent else title
-            if "DS" not in raw and "반도체" not in raw and "메모리" not in raw:
+            soup = BeautifulSoup(r.text, "lxml")
+            raw = " ".join(soup.stripped_strings)
+            if not any(token in raw for token in ["DS", "반도체", "메모리", "파운드리", "Semiconductor"]):
                 continue
-            job_id_match = re.search(r"no=(\d+)", url)
-            records.append(JobRecord(
+            title = (soup.find("h1") or soup.find("title"))
+            title_text = title.get_text(" ", strip=True) if title else text
+            m = re.search(r"no=(\d+)", url)
+            records.append(build_record_from_detail(
                 company=self.company_cfg.name,
                 region=self.source_cfg.region,
-                source=self.source_cfg.meta.get("source_label", self.source_cfg.name),
-                title=title,
+                source_label=self.source_cfg.meta.get("source_label", self.source_cfg.name),
+                title=title_text,
                 url=url,
-                deadline="없음",
-                qualification=extract_education_and_experience(raw),
-                job_function=infer_job_function(title, raw),
-                location="",
-                employment_type="",
-                phd_preferred=is_phd_preferred(raw),
-                job_id=job_id_match.group(1) if job_id_match else "",
                 raw_text=raw,
+                job_id=m.group(1) if m else "",
             ))
         return records

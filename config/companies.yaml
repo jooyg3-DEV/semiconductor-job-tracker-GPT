@@ -44,7 +44,7 @@ companies:
       - name: "ASML-국내"
         url: "https://asmlkorea.careerlink.kr/jobs"
         source_type: "official"
-        parser: "generic_playwright"
+        parser: "careerlink"
         enabled: true
         region: "국내"
         meta: {source_label: "공식-국내"}
@@ -60,14 +60,14 @@ companies:
       - name: "Applied Materials-국내"
         url: "https://appliedkorea.applyin.co.kr/jobs/"
         source_type: "official"
-        parser: "generic_playwright"
+        parser: "applyin"
         enabled: true
         region: "국내"
         meta: {source_label: "공식-국내"}
       - name: "Applied Materials-글로벌"
         url: "https://careers.appliedmaterials.com/careers?domain=appliedmaterials.com&triggerGoButton=false&start=0&pid=790314897561&sort_by=hot"
         source_type: "official"
-        parser: "generic_playwright"
+        parser: "generic_detail"
         enabled: true
         region: "글로벌"
         meta: {source_label: "공식-글로벌"}
@@ -76,7 +76,7 @@ companies:
       - name: "KLA-글로벌"
         url: "https://kla.wd1.myworkdayjobs.com/Search"
         source_type: "official"
-        parser: "generic_playwright"
+        parser: "workday"
         enabled: true
         region: "글로벌"
         meta: {source_label: "공식-글로벌"}
@@ -85,14 +85,14 @@ companies:
       - name: "Lam Research-국내"
         url: "https://lamresearch-recruit.com/jobs"
         source_type: "official"
-        parser: "generic_playwright"
+        parser: "careerlink"
         enabled: true
         region: "국내"
         meta: {source_label: "공식-국내"}
       - name: "Lam Research-글로벌"
         url: "https://careers.lamresearch.com/careers?hl=ko&start=0&pid=1099551785270&sort_by=timestamp"
         source_type: "official"
-        parser: "generic_playwright"
+        parser: "generic_detail"
         enabled: true
         region: "글로벌"
         meta: {source_label: "공식-글로벌"}
@@ -101,7 +101,7 @@ companies:
       - name: "TEL-국내"
         url: "https://tel.recruiter.co.kr/career/career"
         source_type: "official"
-        parser: "generic_playwright"
+        parser: "recruiter"
         enabled: true
         region: "국내"
         meta: {source_label: "공식-국내"}
@@ -110,7 +110,7 @@ companies:
       - name: "Micron-글로벌"
         url: "https://careers.micron.com/careers?start=0&pid=40535385&sort_by=hot"
         source_type: "official"
-        parser: "generic_playwright"
+        parser: "generic_detail"
         enabled: true
         region: "글로벌"
         meta: {source_label: "공식-글로벌"}
@@ -119,7 +119,7 @@ companies:
       - name: "ASM-글로벌"
         url: "https://www.asm.com/open-vacancies"
         source_type: "official"
-        parser: "generic_playwright"
+        parser: "asm"
         enabled: true
         region: "글로벌"
         meta: {source_label: "공식-글로벌"}
@@ -137,7 +137,7 @@ companies:
       - name: "NVIDIA-글로벌"
         url: "https://nvidia.eightfold.ai/careers?start=0&pid=893394241687&sort_by=timestamp"
         source_type: "official"
-        parser: "generic_playwright"
+        parser: "generic_detail"
         enabled: true
         region: "글로벌"
         meta: {source_label: "공식-글로벌"}
@@ -146,7 +146,7 @@ companies:
       - name: "AMD-글로벌"
         url: "https://careers.amd.com/careers-home/jobs"
         source_type: "official"
-        parser: "generic_playwright"
+        parser: "generic_detail"
         enabled: true
         region: "글로벌"
         meta: {source_label: "공식-글로벌"}
@@ -157,7 +157,7 @@ companies:
       - name: "사람인"
         url: "https://www.saramin.co.kr/zf_user/search/recruit"
         source_type: "platform"
-        parser: "generic_playwright"
+        parser: "platform_search"
         enabled: true
         region: "글로벌"
         meta: {source_label: "사람인"}
@@ -166,7 +166,7 @@ companies:
       - name: "링크드인"
         url: "https://www.linkedin.com/jobs/"
         source_type: "platform"
-        parser: "generic_playwright"
+        parser: "platform_search"
         enabled: true
         region: "글로벌"
         meta: {source_label: "링크드인"}
@@ -175,7 +175,7 @@ companies:
       - name: "잡코리아"
         url: "https://www.jobkorea.co.kr/"
         source_type: "platform"
-        parser: "generic_playwright"
+        parser: "platform_search"
         enabled: true
         region: "글로벌"
         meta: {source_label: "잡코리아"}
@@ -184,7 +184,7 @@ companies:
       - name: "잡다"
         url: "https://www.jobda.im/"
         source_type: "platform"
-        parser: "generic_playwright"
+        parser: "platform_search"
         enabled: true
         region: "글로벌"
         meta: {source_label: "잡다"}
@@ -193,7 +193,7 @@ companies:
       - name: "하이브레인넷"
         url: "https://www.hibrain.net/"
         source_type: "platform"
-        parser: "generic_playwright"
+        parser: "platform_search"
         enabled: true
         region: "글로벌"
         meta: {source_label: "하이브레인넷"}
@@ -202,7 +202,7 @@ companies:
       - name: "캐치"
         url: "https://www.catch.co.kr/"
         source_type: "platform"
-        parser: "generic_playwright"
+        parser: "platform_search"
         enabled: true
         region: "글로벌"
         meta: {source_label: "캐치"}
@@ -211,7 +211,7 @@ companies:
       - name: "링커리어"
         url: "https://linkareer.com/"
         source_type: "platform"
-        parser: "generic_playwright"
+        parser: "platform_search"
         enabled: true
         region: "글로벌"
         meta: {source_label: "링커리어"}
@@ -220,7 +220,7 @@ companies:
       - name: "잡플래닛"
         url: "https://www.jobplanet.co.kr/"
         source_type: "platform"
-        parser: "generic_playwright"
+        parser: "platform_search"
         enabled: true
         region: "글로벌"
         meta: {source_label: "잡플래닛"}

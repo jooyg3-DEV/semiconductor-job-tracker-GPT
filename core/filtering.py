@@ -1,7 +1,22 @@
-
 from __future__ import annotations
 
+import re
+
 from core.models import JobRecord
+
+
+PHD_PATTERNS = ["phd preferred", "ph.d", "ph.d.", "박사 우대", "박사학위 우대"]
+EDU_PATTERNS = ["master", "phd", "ph.d", "석사", "박사"]
+STRONG_ROLE_PATTERNS = [
+    "process engineer",
+    "field application engineer",
+    "application engineer",
+    "metrology",
+    "deposition",
+    "lithography",
+    "반도체",
+    "공정",
+]
 
 
 def filter_records(
@@ -13,8 +28,8 @@ def filter_records(
     education_rule: str,
 ) -> list[JobRecord]:
     out: list[JobRecord] = []
-    include_keywords_l = [k.lower() for k in include_keywords]
-    exclude_keywords_l = [k.lower() for k in exclude_keywords]
+    include_keywords_l = [k.lower() for k in include_keywords if k]
+    exclude_keywords_l = [k.lower() for k in exclude_keywords if k]
 
     for record in records:
         corpus = " ".join(
@@ -29,13 +44,18 @@ def filter_records(
 
         include_hits = sum(1 for k in include_keywords_l if k in corpus)
         exclude_hits = sum(1 for k in exclude_keywords_l if k in corpus)
-        education_ok = any(token in corpus for token in ["master", "phd", "ph.d", "석사", "박사"])
+        strong_role_hit = any(p in corpus for p in STRONG_ROLE_PATTERNS)
+        education_ok = any(token in corpus for token in EDU_PATTERNS)
 
-        if include_hits == 0:
-            continue
-        if exclude_hits > 0 and include_hits < 2:
+        if include_hits == 0 and not strong_role_hit:
             continue
         if education_rule and not education_ok:
+            continue
+        if exclude_hits > 0 and not (include_hits >= 2 or strong_role_hit):
+            continue
+
+        # 최소 품질: 제목 또는 링크가 있어야 함
+        if not (record.title and record.url):
             continue
 
         out.append(record)
