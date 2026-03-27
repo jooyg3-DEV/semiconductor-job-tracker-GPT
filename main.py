@@ -57,7 +57,8 @@ def main() -> None:
             miss_threshold=config.runtime.miss_threshold,
         )
         sheets.write_active_records(sheet_key, active)
-        sheets.write_closed_records(sheet_key, closed)
+        if closed or sheets.worksheet_exists(f"종료-{sheet_key}"):
+            sheets.write_closed_records(sheet_key, closed)
         print(f"[INFO] wrote {len(active)} active / {len(closed)} closed for {sheet_key}")
 
     state.flush()
