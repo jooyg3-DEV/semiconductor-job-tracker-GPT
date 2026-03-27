@@ -20,6 +20,7 @@ SCOPES = [
 
 HEADERS = ["검색일", "출처", "마감일", "회사", "공고명", "지원자격", "채용직무", "근무지", "채용형태", "박사우대여부", "링크"]
 STATE_HEADERS = ["sheet_key", "unique_key", "payload_json"]
+CLOSED_SHEET_TITLE = "종료공고"
 T = TypeVar("T")
 
 
@@ -59,16 +60,17 @@ class GoogleSheetsClient:
                     is_retryable = status in (429, 500, 502, 503, 504)
                 elif isinstance(exc, HttpError):
                     is_retryable = getattr(exc.resp, "status", None) in (429, 500, 502, 503, 504)
-                elif "429" in text or "Quota exceeded" in text or "rateLimitExceeded" in text:
+                elif any(token in text for token in ["429", "Quota exceeded", "rateLimitExceeded"]):
                     is_retryable = True
-
                 if not is_retryable or attempt == retries - 1:
                     raise
-
                 sleep_s = base_sleep * (2 ** attempt)
                 print(f"[WARN] Google Sheets quota/backoff: retry in {sleep_s:.1f}s ({attempt + 1}/{retries})")
                 time.sleep(sleep_s)
-        raise last_exc  # pragma: no cover
+        raise last_exc
+
+    def worksheet_exists(self, title: str) -> bool:
+        return title in self._worksheet_cache
 
     def _ensure_worksheet(self, title: str, *, create_if_missing: bool = True):
         ws = self._worksheet_cache.get(title)
@@ -80,51 +82,70 @@ class GoogleSheetsClient:
         self._worksheet_cache[title] = ws
         return ws
 
-    def worksheet_exists(self, title: str) -> bool:
-        return title in self._worksheet_cache
-
-    def initialize_structure(self, sheet_keys: list[str]) -> None:
-        ordered_titles: list[tuple[str, list[str]]] = []
-        for sheet_key in sheet_keys:
-            ordered_titles.append((sheet_key, HEADERS))
-            ordered_titles.append((f"종료-{sheet_key}", HEADERS))
-        ordered_titles.append(("_STATE", STATE_HEADERS))
-
-        for title, headers in ordered_titles:
-            if self.worksheet_exists(title):
+    def reset_and_initialize(self, company_names: list[str]) -> None:
+        # Ensure there is a keeper worksheet while deleting everything else.
+        self._populate_cache()
+        keeper = next(iter(self._worksheet_cache.values()), None)
+        if keeper is None:
+            keeper = self._with_retry(lambda: self.sh.add_worksheet(title="__INIT__", rows=10, cols=10))
+            self._worksheet_cache[keeper.title] = keeper
+        # Delete all but keeper
+        for title, ws in list(self._worksheet_cache.items()):
+            if ws.id == keeper.id:
                 continue
-            ws = self._ensure_worksheet(title, create_if_missing=True)
-            self._replace_sheet_values(ws, [headers])
-            print(f"[INFO] initialized worksheet {title}")
-            time.sleep(1.0)
+            self._with_retry(lambda ws=ws: self.sh.del_worksheet(ws))
+            self._worksheet_cache.pop(title, None)
+            time.sleep(0.5)
+        # Rename keeper to first company or _STATE if no companies
+        first_title = company_names[0] if company_names else "_STATE"
+        self._with_retry(lambda: keeper.update_title(first_title))
+        self._worksheet_cache = {first_title: keeper}
+        self._replace_sheet_values(keeper, [HEADERS] if first_title != "_STATE" else [STATE_HEADERS], clear_first=True)
 
-    def write_active_records(self, sheet_key: str, records: list[JobRecord], *, create_if_missing: bool = False) -> None:
-        ws = self._ensure_worksheet(sheet_key, create_if_missing=create_if_missing)
+        for title in company_names[1:] + [CLOSED_SHEET_TITLE, "_STATE"]:
+            ws = self._ensure_worksheet(title, create_if_missing=True)
+            headers = STATE_HEADERS if title == "_STATE" else HEADERS
+            self._replace_sheet_values(ws, [headers], clear_first=True)
+            print(f"[INFO] initialized worksheet {title}")
+            time.sleep(0.5)
+
+    def write_company_records(self, sheet_title: str, records: list[JobRecord]) -> None:
+        ws = self._ensure_worksheet(sheet_title, create_if_missing=False)
         if ws is None:
-            print(f"[WARN] active worksheet missing, skipped: {sheet_key}")
+            print(f"[WARN] company worksheet missing, skipped: {sheet_title}")
             return
         today_str = datetime.now().strftime("%Y-%m-%d")
         records = self._sorted_records(records)
         values = [HEADERS] + [r.to_row(today_str) for r in records]
-        self._replace_sheet_values(ws, values)
+        self._replace_sheet_values(ws, values, clear_first=True)
 
-    def write_closed_records(self, sheet_key: str, records: list[JobRecord], *, create_if_missing: bool = False) -> None:
-        title = f"종료-{sheet_key}"
-        ws = self._ensure_worksheet(title, create_if_missing=create_if_missing)
+    def write_closed_records(self, records: list[JobRecord]) -> None:
+        ws = self._ensure_worksheet(CLOSED_SHEET_TITLE, create_if_missing=False)
         if ws is None:
-            print(f"[WARN] closed worksheet missing, skipped: {title}")
+            print(f"[WARN] closed worksheet missing, skipped: {CLOSED_SHEET_TITLE}")
             return
         today_str = datetime.now().strftime("%Y-%m-%d")
+        records = self._sorted_closed_records(records)
         values = [HEADERS] + [r.to_row(today_str) for r in records]
-        self._replace_sheet_values(ws, values)
+        self._replace_sheet_values(ws, values, clear_first=True)
         if records:
             self._apply_strikethrough(ws, start_row=2, end_row=len(values))
 
-    def _replace_sheet_values(self, ws, values: list[list[str]]) -> None:
-        end_col = self._col_letter(len(values[0]))
-        end_row = max(len(values), 2)
-        padded = values + ([[""] * len(values[0]) ] if len(values) == 1 else [])
-        self._with_retry(lambda: ws.update(range_name=f"A1:{end_col}{end_row}", values=padded))
+    def _replace_sheet_values(self, ws, values: list[list[str]], *, clear_first: bool = False) -> None:
+        if clear_first:
+            self._with_retry(lambda: ws.clear())
+        # prevent single-cell overflow due to huge strings
+        sanitized = [[self._sanitize_cell(v) for v in row] for row in values]
+        end_col = self._col_letter(len(sanitized[0]))
+        end_row = len(sanitized)
+        self._with_retry(lambda: ws.update(range_name=f"A1:{end_col}{end_row}", values=sanitized))
+
+    @staticmethod
+    def _sanitize_cell(value):
+        if value is None:
+            return ""
+        s = str(value)
+        return s[:45000]
 
     @staticmethod
     def _col_letter(n: int) -> str:
@@ -136,12 +157,17 @@ class GoogleSheetsClient:
 
     @staticmethod
     def _sorted_records(records: list[JobRecord]) -> list[JobRecord]:
-        def sort_key(r: JobRecord):
-            # 마감일 없음 최상단, 그다음 가까운 마감일 순
-            if not r.deadline or r.deadline == "없음":
-                return (0, "")
-            return (1, r.deadline)
-        return sorted(records, key=sort_key)
+        def source_rank(r: JobRecord):
+            return 0 if r.region == "국내" else 1
+        def deadline_rank(r: JobRecord):
+            return (0, "") if not r.deadline or r.deadline == "없음" else (1, r.deadline)
+        return sorted(records, key=lambda r: (source_rank(r), deadline_rank(r), r.title))
+
+    @staticmethod
+    def _sorted_closed_records(records: list[JobRecord]) -> list[JobRecord]:
+        def deadline_rank(r: JobRecord):
+            return (0, "") if not r.deadline or r.deadline == "없음" else (1, r.deadline)
+        return sorted(records, key=lambda r: (r.company, deadline_rank(r), r.title))
 
     def _apply_strikethrough(self, ws, start_row: int, end_row: int) -> None:
         body = {
@@ -172,9 +198,7 @@ class GoogleSheetsClient:
         if ws is None:
             return []
         rows = self._with_retry(lambda: ws.get_all_values())
-        if not rows:
-            return []
-        return rows[1:]
+        return rows[1:] if rows else []
 
     def write_state_rows(self, rows: list[list[str]], *, create_if_missing: bool = False) -> None:
         ws = self._ensure_worksheet("_STATE", create_if_missing=create_if_missing)
@@ -182,4 +206,4 @@ class GoogleSheetsClient:
             print("[WARN] _STATE worksheet missing, skipped state flush")
             return
         values = [STATE_HEADERS] + rows
-        self._replace_sheet_values(ws, values)
+        self._replace_sheet_values(ws, values, clear_first=True)

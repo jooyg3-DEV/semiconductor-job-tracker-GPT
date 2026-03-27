@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -61,7 +60,7 @@ class JobRecord:
 
     @property
     def sheet_key(self) -> str:
-        return f"{self.company}-{self.region}"
+        return self.company
 
     @property
     def unique_key(self) -> str:

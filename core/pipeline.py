@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from core.models import JobRecord
@@ -28,7 +27,6 @@ def reconcile_records(sheet_key: str, incoming_records: list[JobRecord], state_m
             "location": record.location,
             "employment_type": record.employment_type,
             "phd_preferred": record.phd_preferred,
-            "raw_text": record.raw_text,
             "miss_count": 0,
             "closed": False,
         }
@@ -47,10 +45,10 @@ def reconcile_records(sheet_key: str, incoming_records: list[JobRecord], state_m
             item["closed"] = True
             closed.append(JobRecord(
                 company=item["company"],
-                region=item["region"],
-                source=item["source"],
-                title=item["title"],
-                url=item["url"],
+                region=item.get("region", ""),
+                source=item.get("source", ""),
+                title=item.get("title", ""),
+                url=item.get("url", ""),
                 deadline=item.get("deadline", "없음"),
                 qualification=item.get("qualification", ""),
                 job_function=item.get("job_function", ""),
@@ -58,7 +56,7 @@ def reconcile_records(sheet_key: str, incoming_records: list[JobRecord], state_m
                 employment_type=item.get("employment_type", ""),
                 phd_preferred=item.get("phd_preferred", "N"),
                 job_id=item.get("job_id", ""),
-                raw_text=item.get("raw_text", ""),
+                raw_text="",
             ))
 
     active = [r for r in active if not deadline_passed_with_grace(r.deadline, today_str)]

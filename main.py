@@ -26,15 +26,11 @@ def main() -> None:
     config = load_config(Path("config/companies.yaml"))
     sheets = GoogleSheetsClient.from_env()
 
-    sheet_keys = []
-    for company_cfg in config.companies:
-        for source_cfg in company_cfg.sources:
-            sheet_keys.append(f"{company_cfg.name}-{source_cfg.region}")
-    sheet_keys = sorted(set(sheet_keys))
+    real_company_names = [c.name for c in config.companies if any(s.source_type == "official" for s in c.sources)]
 
     if args.mode == "init":
-        sheets.initialize_structure(sheet_keys)
-        print(f"[INFO] initialized {len(sheet_keys)} active sheets + closed sheets + _STATE")
+        sheets.reset_and_initialize(real_company_names)
+        print(f"[INFO] initialized {len(real_company_names)} company sheets + 종료공고 + _STATE")
         return
 
     state = SheetStateManager(sheets)
@@ -59,34 +55,26 @@ def main() -> None:
                 education_rule=config.filters.education_rule,
             )
             print(f"[INFO] kept {len(filtered)} records after filtering for {company_cfg.name}/{source_cfg.name}")
-            sheet_key = f"{company_cfg.name}-{source_cfg.region}"
-            grouped_records.setdefault(sheet_key, [])
             for record in filtered:
                 grouped_records[record.sheet_key].append(record)
 
     today_str = datetime.now().strftime("%Y-%m-%d")
-    for sheet_key, records in grouped_records.items():
-        deduped = dedupe_records(records)
+    all_closed: list[JobRecord] = []
+    for company_name in real_company_names:
+        deduped = dedupe_records(grouped_records.get(company_name, []))
         active, closed = reconcile_records(
-            sheet_key=sheet_key,
+            sheet_key=company_name,
             incoming_records=deduped,
             state_manager=state,
             today_str=today_str,
             miss_threshold=config.runtime.miss_threshold,
         )
-        # sync mode에서는 미리 만든 탭에만 기록한다.
-        if sheets.worksheet_exists(sheet_key):
-            sheets.write_active_records(sheet_key, active, create_if_missing=False)
-        else:
-            print(f"[WARN] missing active sheet in sync mode: {sheet_key}")
+        sheets.write_company_records(company_name, active)
+        all_closed.extend(closed)
+        print(f"[INFO] wrote {len(active)} active / {len(closed)} closed for {company_name}")
 
-        closed_title = f"종료-{sheet_key}"
-        if sheets.worksheet_exists(closed_title):
-            sheets.write_closed_records(sheet_key, closed, create_if_missing=False)
-        else:
-            print(f"[WARN] missing closed sheet in sync mode: {closed_title}")
-        print(f"[INFO] wrote {len(active)} active / {len(closed)} closed for {sheet_key}")
-
+    sheets.write_closed_records(all_closed)
+    print(f"[INFO] wrote {len(all_closed)} total closed records to 종료공고")
     state.flush()
 
 
