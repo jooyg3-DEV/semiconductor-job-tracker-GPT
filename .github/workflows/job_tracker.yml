@@ -1,4 +1,3 @@
-
 name: job-tracker
 
 on:
@@ -6,6 +5,15 @@ on:
     - cron: "0 15 * * *"  # KST 00:00
     - cron: "0 4 * * *"   # KST 13:00
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "init: 탭/헤더 생성, sync: 데이터 수집/반영"
+        required: true
+        default: "sync"
+        type: choice
+        options:
+          - sync
+          - init
 
 jobs:
   run-job-tracker:
@@ -32,4 +40,5 @@ jobs:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
         run: |
-          python main.py
+          MODE="${{ github.event.inputs.mode || 'sync' }}"
+          python main.py --mode "$MODE"
