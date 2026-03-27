@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from urllib.parse import quote_plus, urlparse
+from urllib.parse import quote_plus
 
 from adapters.playwright_utils import USER_AGENT, build_record_from_detail, collect_candidate_links, extract_job_id_from_url, safe_goto
 from adapters.base import BaseAdapter
@@ -31,7 +31,7 @@ ALIASES = {
 PLATFORM_URL_REQUIRES = {
     "사람인": ["rec_idx=", "/jobs/relay/view", "/job-search/view"],
     "링크드인": ["/jobs/view/"],
-    "잡코리아": ["/Recruit/GI_Read/", "/Recruit/GI_Read"] ,
+    "잡코리아": ["/Recruit/GI_Read/", "/Recruit/GI_Read"],
     "잡다": ["/recruit/", "/jobs/"],
     "하이브레인넷": ["/job/", "/hiring/", "/recruit/"],
     "캐치": ["/NCS/RecruitInfo", "/RecruitInfo", "/NCS/RecruitDetail", "/RecruitDetail"],
@@ -131,13 +131,11 @@ class SearchPlatformAdapter(BaseAdapter):
         if not any(tok.lower() in raw_l or tok.lower() in (title or "").lower() for tok in JOBISH_TERMS):
             return True
 
-        # LinkedIn public pages include login prompts, but that alone should not cause rejection.
         if platform == "링크드인":
             linkedin_positive = ["job function", "industries", "employment type", "minimum qualifications", "preferred qualifications"]
             if not any(tok in raw_l for tok in linkedin_positive):
                 return True
 
-        # Catch pages are especially noisy; require explicit company and deadline/job signals together.
         if platform == "캐치":
             catch_positive = ["채용공고", "오늘마감", "d-", "지원하기", "정규직", "신입/경력"]
             if not any(tok in raw_l for tok in catch_positive):
@@ -153,7 +151,6 @@ class SearchPlatformAdapter(BaseAdapter):
         title = clean_text(soup.find("h1").get_text(" ", strip=True) if soup.find("h1") else "")
         raw = clean_text(soup.get_text(" ", strip=True))
         if not title:
-            # LinkedIn and some platforms expose og:title more reliably
             og = soup.find("meta", attrs={"property": "og:title"}) or soup.find("meta", attrs={"name": "title"})
             if og and og.get("content"):
                 title = clean_text(og["content"])

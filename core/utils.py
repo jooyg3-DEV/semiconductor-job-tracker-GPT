@@ -1,10 +1,10 @@
-
 from __future__ import annotations
 
 import json
 import re
 from datetime import datetime, timedelta
 from typing import Any
+from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
 
@@ -46,8 +46,14 @@ def is_phd_preferred(text: str) -> str:
 
 def extract_education_and_experience(text: str) -> str:
     t = clean_text(text)
-    edu_match = re.search(r"(master[^.;\n]*|ph\.?d[^.;\n]*|석사[^.;\n]*|박사[^.;\n]*)", t, flags=re.I)
-    exp_match = re.search(r"((?:\d+\+?\s*years?|신입|경력 무관|experience[^.;\n]*|경력[^.;\n]*))", t, flags=re.I)
+    edu_match = re.search(r"(master[^.;
+]*|ph\.?d[^.;
+]*|석사[^.;
+]*|박사[^.;
+]*)", t, flags=re.I)
+    exp_match = re.search(r"((?:\d+\+?\s*years?|신입|경력 무관|experience[^.;
+]*|경력[^.;
+]*))", t, flags=re.I)
     parts = []
     if edu_match:
         parts.append(clean_text(edu_match.group(1)))
@@ -62,10 +68,14 @@ def infer_job_function(title: str, raw_text: str) -> str:
         ("field application engineer", "Field Application Engineer"),
         ("application engineer", "Application Engineer"),
         ("process support engineer", "Process Support Engineer"),
+        ("customer engineer", "Customer Engineer"),
         ("process engineer", "Process Engineer"),
+        ("integration", "Integration"),
+        ("yield", "Yield"),
         ("metrology", "Metrology"),
         ("lithography", "Lithography"),
         ("deposition", "Deposition"),
+        ("etch", "Etch"),
         ("packaging", "Packaging"),
     ]
     for needle, label in mapping:
@@ -100,3 +110,32 @@ def infer_region_from_location(location: str, fallback_region: str = "") -> str:
             return "국내"
         return "글로벌"
     return fallback_region or "글로벌"
+
+
+GENERIC_SEARCH_URL_TOKENS = [
+    "recruitsearch", "/search", "search?", "search/", "theme=", "keyword=", "query=", "jobs/search",
+]
+GENERIC_SEARCH_TITLE_PATTERNS = [
+    "top중견중소", "신입 인기 top", "경력 인기 top", "오늘 뜬 인기 top", "인턴·교육생", "반도체·전기·전자",
+    "공고리스트를 불러오고 있습니다", "최근검색기록", "검색조건초기화", "전체 공고 이동하기", "조건 추가 각각 최대",
+    "채용설명회", "캐치tv", "인재pick", "제안관리", "진학상담", "대학원카페", "연구실정보"
+]
+
+
+def looks_like_listing_or_search_page(url: str, title: str = "", text: str = "") -> bool:
+    corpus = f"{url} {title} {text}".lower()
+    if any(tok in corpus for tok in GENERIC_SEARCH_URL_TOKENS):
+        return True
+    return any(pat.lower() in corpus for pat in GENERIC_SEARCH_TITLE_PATTERNS)
+
+
+def explicit_company_match(text: str, aliases: list[str]) -> bool:
+    t = text.lower()
+    return any(alias.lower() in t for alias in aliases)
+
+
+def domain_of(url: str) -> str:
+    try:
+        return urlparse(url).netloc.lower()
+    except Exception:
+        return ""
