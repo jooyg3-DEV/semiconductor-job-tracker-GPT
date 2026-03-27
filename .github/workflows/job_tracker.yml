@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "init: 탭/헤더 생성, sync: 데이터 수집/반영"
+        description: "init: 모든 탭 삭제 후 기업별 탭/종료공고/_STATE 재생성, sync: 데이터 수집/반영"
         required: true
         default: "sync"
         type: choice
