@@ -19,7 +19,7 @@ def reconcile_records(sheet_key: str, incoming_records: list[JobRecord], state_m
             "url": record.url,
             "title": record.title,
             "company": record.company,
-            "region": record.region,
+            "region": record.effective_region,
             "source": record.source,
             "deadline": record.deadline,
             "qualification": record.qualification,

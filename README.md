@@ -58,3 +58,6 @@ GitHub cron 은 UTC 기준이므로 워크플로에는 다음으로 들어갑니
 ## 주의
 - 동적 사이트는 Playwright 기반입니다.
 - 사이트 구조 변경 시 어댑터 수정이 필요합니다.
+
+
+- 기업 탭 내 국내/글로벌 정렬은 source 구분이 아니라 **근무지(location) 기준**으로 판정합니다. location이 비어 있으면 source 기본 region을 fallback으로 사용합니다.

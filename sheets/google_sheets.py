@@ -158,7 +158,7 @@ class GoogleSheetsClient:
     @staticmethod
     def _sorted_records(records: list[JobRecord]) -> list[JobRecord]:
         def source_rank(r: JobRecord):
-            return 0 if r.region == "국내" else 1
+            return 0 if r.effective_region == "국내" else 1
         def deadline_rank(r: JobRecord):
             return (0, "") if not r.deadline or r.deadline == "없음" else (1, r.deadline)
         return sorted(records, key=lambda r: (source_rank(r), deadline_rank(r), r.title))

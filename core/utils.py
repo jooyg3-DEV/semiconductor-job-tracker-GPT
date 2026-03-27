@@ -83,3 +83,20 @@ def deadline_passed_with_grace(deadline_str: str, today_str: str) -> bool:
     except ValueError:
         return False
     return today >= d + timedelta(days=1)
+
+
+_KOREA_LOCATION_TERMS = [
+    "korea", "대한민국", "한국", "seoul", "서울", "경기", "suwon", "수원",
+    "hwaseong", "화성", "pyeongtaek", "평택", "icheon", "이천", "cheonan", "천안",
+    "daejeon", "대전", "gumi", "구미", "osan", "오산", "gihung", "기흥",
+    "yongin", "용인", "incheon", "인천", "pangyo", "판교", "청주", "cheongju",
+]
+
+
+def infer_region_from_location(location: str, fallback_region: str = "") -> str:
+    text = (location or "").strip().lower()
+    if text:
+        if any(term in text for term in _KOREA_LOCATION_TERMS):
+            return "국내"
+        return "글로벌"
+    return fallback_region or "글로벌"

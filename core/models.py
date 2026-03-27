@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from core.utils import infer_region_from_location
+
 
 @dataclass
 class SourceConfig:
@@ -57,6 +59,10 @@ class JobRecord:
     job_id: str = ""
     raw_text: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def effective_region(self) -> str:
+        return infer_region_from_location(self.location, self.region)
 
     @property
     def sheet_key(self) -> str:
