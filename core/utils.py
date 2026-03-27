@@ -46,14 +46,16 @@ def is_phd_preferred(text: str) -> str:
 
 def extract_education_and_experience(text: str) -> str:
     t = clean_text(text)
-    edu_match = re.search(r"(master[^.;
-]*|ph\.?d[^.;
-]*|석사[^.;
-]*|박사[^.;
-]*)", t, flags=re.I)
-    exp_match = re.search(r"((?:\d+\+?\s*years?|신입|경력 무관|experience[^.;
-]*|경력[^.;
-]*))", t, flags=re.I)
+    edu_match = re.search(
+        r"(master[^.;\n]*|ph\.?d[^.;\n]*|석사[^.;\n]*|박사[^.;\n]*)",
+        t,
+        flags=re.I,
+    )
+    exp_match = re.search(
+        r"((?:\d+\+?\s*years?|신입|경력 무관|experience[^.;\n]*|경력[^.;\n]*))",
+        t,
+        flags=re.I,
+    )
     parts = []
     if edu_match:
         parts.append(clean_text(edu_match.group(1)))
