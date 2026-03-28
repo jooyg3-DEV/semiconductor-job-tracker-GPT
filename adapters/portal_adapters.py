@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from urllib.parse import urlparse
+import re
 
 import requests
 from bs4 import BeautifulSoup
@@ -83,6 +84,10 @@ class ApplyInAdapter(GenericDetailPlaywrightAdapter):
             safe_goto(page, self.source_cfg.url)
             page.wait_for_timeout(2500)
             candidates: list[tuple[str, str]] = []
+            html = page.content()
+            for m in re.finditer(r'https://[^"\']*applyin\.co\.kr/jobs/\d+', html):
+                href = m.group(0)
+                candidates.append(("", href))
             sels = ["a[href*='/jobs/']", "a[href*='jobview']", "a[href*='recruit/view']"]
             seen = set()
             for sel in sels:
@@ -173,62 +178,64 @@ class CareerLinkAdapter(GenericDetailPlaywrightAdapter):
 
 
 class WorkdayAdapter(GenericDetailPlaywrightAdapter):
-    max_candidates = 80
-    max_details = 30
+    max_candidates = 120
+    max_details = 40
 
     def fetch(self) -> list[JobRecord]:
         records: list[JobRecord] = []
+        candidates = []
+        seen = set()
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page(user_agent=USER_AGENT)
             safe_goto(page, self.source_cfg.url)
-            page.wait_for_timeout(4000)
-            candidates = []
-            seen = set()
+            page.wait_for_timeout(4500)
+            html = page.content()
+            for m in re.finditer(r"https://[^\"']*myworkdayjobs\.com[^\"']*/job/[^\"']+", html):
+                href = m.group(0)
+                if href not in seen:
+                    seen.add(href)
+                    candidates.append((href.rsplit('/', 1)[-1].replace('_', ' '), href))
             sels = [
-                "a[href*='job/']",
+                "a[href*='/job/']",
                 "a[data-automation-id='jobTitle']",
-                "a[href*='job-details']",
-                "a[href*='/External/job/']",
                 "a[href*='/Search/job/']",
+                "a[href*='/UR/job/']",
             ]
             for sel in sels:
                 loc = page.locator(sel)
-                for i in range(min(loc.count(), 120)):
+                for i in range(min(loc.count(), 160)):
                     node = loc.nth(i)
                     try:
-                        href = node.get_attribute("href") or ""
-                        text = clean_text(node.inner_text())
+                        href = node.get_attribute('href') or ''
+                        txt = clean_text(node.inner_text())
                     except Exception:
                         continue
-                    if not href:
-                        continue
-                    if href.startswith("/"):
+                    if href.startswith('/'):
                         href = f"https://{urlparse(self.source_cfg.url).netloc}{href}"
-                    if href in seen:
-                        continue
-                    seen.add(href)
-                    candidates.append((text, href))
+                    if href and href not in seen:
+                        seen.add(href)
+                        candidates.append((txt, href))
             browser.close()
 
         headers = {"User-Agent": USER_AGENT}
-        for text, url in candidates[: self.max_details]:
+        for text0, url in candidates[: self.max_details]:
             try:
                 r = requests.get(url, headers=headers, timeout=45)
                 r.raise_for_status()
             except Exception:
                 continue
             html = r.text
-            soup = BeautifulSoup(html, "lxml")
-            raw = clean_text(soup.get_text(" ", strip=True))
-            title = clean_text(soup.find("h1").get_text(" ", strip=True) if soup.find("h1") else text)
+            soup = BeautifulSoup(html, 'lxml')
+            raw = clean_text(soup.get_text(' ', strip=True))
+            title = clean_text(soup.find('h1').get_text(' ', strip=True) if soup.find('h1') else text0)
             json_ld = parse_jobposting_json_ld(html)
-            location = clean_text((((json_ld.get("jobLocation") or {}).get("address") or {}).get("addressLocality")) if isinstance(json_ld.get("jobLocation"), dict) else "")
-            employment_type = clean_text(json_ld.get("employmentType") or "")
+            location = clean_text((((json_ld.get('jobLocation') or {}).get('address') or {}).get('addressLocality')) if isinstance(json_ld.get('jobLocation'), dict) else '')
+            employment_type = clean_text(json_ld.get('employmentType') or '')
             records.append(build_record_from_detail(
                 company=self.company_cfg.name,
                 region=self.source_cfg.region,
-                source_label=self.source_cfg.meta.get("source_label", self.source_cfg.name),
+                source_label=self.source_cfg.meta.get('source_label', self.source_cfg.name),
                 title=title,
                 url=url,
                 raw_text=raw,

@@ -15,13 +15,13 @@ TARGET_COMPANIES = [
     "삼성전자DS", "SK하이닉스", "ASML", "Applied Materials", "KLA", "Lam Research", "TEL", "Micron", "ASM", "TSMC", "NVIDIA", "AMD"
 ]
 ALIASES = {
-    "삼성전자DS": ["삼성전자", "samsung", "device solutions", "ds division", "삼성 ds"],
+    "삼성전자DS": ["삼성전자", "samsung", "device solutions", "ds division", "삼성 ds", "samsung electronics"],
     "SK하이닉스": ["sk hynix", "sk하이닉스", "하이닉스"],
     "ASML": ["asml"],
     "Applied Materials": ["applied materials", "어플라이드머티어리얼즈", "어플라이드 머티어리얼즈"],
-    "KLA": ["kla", "k l a"],
+    "KLA": ["kla", "k l a", "kla corporation"],
     "Lam Research": ["lam research", "램리서치", "lamresearch"],
-    "TEL": ["tokyo electron", "tel", "도쿄일렉트론", "tokyoelectron"],
+    "TEL": ["tokyo electron", "tel", "도쿄일렉트론", "tokyoelectron", "tokyo electron korea"],
     "Micron": ["micron", "마이크론"],
     "ASM": ["asm international", "asm", "에이에스엠"],
     "TSMC": ["tsmc", "taiwan semiconductor", "taiwan semiconductor manufacturing", "대만반도체"],
@@ -72,7 +72,7 @@ class SearchPlatformAdapter(BaseAdapter):
         if platform == "잡코리아":
             return f"https://www.jobkorea.co.kr/Search/?stext={quote_plus(query)}"
         if platform == "링크드인":
-            return f"https://www.linkedin.com/jobs/search/?keywords={quote_plus(query)}"
+            return f"https://www.linkedin.com/jobs/search/?keywords={quote_plus(company_name + " process engineer semiconductor metrology lithography deposition packaging field application engineer")}"
         if platform == "링커리어":
             return f"https://linkareer.com/search?query={quote_plus(query)}"
         if platform == "잡플래닛":
@@ -132,8 +132,10 @@ class SearchPlatformAdapter(BaseAdapter):
             return True
 
         if platform == "링크드인":
-            linkedin_positive = ["job function", "industries", "employment type", "minimum qualifications", "preferred qualifications"]
+            linkedin_positive = ["job function", "industries", "employment type", "minimum qualifications", "preferred qualifications", "show more jobs", "seniority level"]
             if not any(tok in raw_l for tok in linkedin_positive):
+                return True
+            if "join now" in raw_l and not any(tok in raw_l for tok in linkedin_positive):
                 return True
 
         if platform == "캐치":
@@ -145,6 +147,21 @@ class SearchPlatformAdapter(BaseAdapter):
 
     def _detail_text(self, platform: str, url: str) -> tuple[str, str]:
         headers = {"User-Agent": USER_AGENT}
+        if platform == "링크드인":
+            try:
+                with sync_playwright() as p:
+                    browser = p.chromium.launch(headless=True)
+                    page = browser.new_page(user_agent=USER_AGENT)
+                    safe_goto(page, url)
+                    page.wait_for_timeout(2500)
+                    html = page.content()
+                    browser.close()
+                soup = BeautifulSoup(html, "lxml")
+                title = clean_text(soup.find("h1").get_text(" ", strip=True) if soup.find("h1") else "")
+                raw = clean_text(soup.get_text(" ", strip=True))
+                return title, raw
+            except Exception:
+                pass
         r = requests.get(url, headers=headers, timeout=30)
         r.raise_for_status()
         soup = BeautifulSoup(r.text, "lxml")

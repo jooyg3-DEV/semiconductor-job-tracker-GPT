@@ -4,15 +4,51 @@ import requests
 from bs4 import BeautifulSoup
 
 from adapters.base import BaseAdapter
+from adapters.playwright_utils import USER_AGENT, build_record_from_detail
+from core.utils import clean_text
 
 
 class SKHynixAdapter(BaseAdapter):
     def fetch(self):
-        r = requests.get(self.source_cfg.url, timeout=60, headers={"User-Agent": "Mozilla/5.0"})
-        r.raise_for_status()
-        soup = BeautifulSoup(r.text, "lxml")
-        text = soup.get_text(" ", strip=True)
-        if "No job opening is found" in text or "진행중인 채용 공고가 없습니다" in text:
-            return []
-        # 현재 페이지 구조는 동적이며 본 프로젝트 초기 버전에서는 공고 없음 상태만 안정적으로 처리.
-        return []
+        session = requests.Session()
+        headers = {"User-Agent": USER_AGENT}
+        list_urls = [self.source_cfg.url, "https://www.skcareers.com/Recruit"]
+        detail_urls: list[str] = []
+        seen = set()
+        for list_url in list_urls:
+            try:
+                r = session.get(list_url, timeout=45, headers=headers)
+                r.raise_for_status()
+            except Exception:
+                continue
+            soup = BeautifulSoup(r.text, "lxml")
+            for a in soup.select("a[href*='/Recruit/Detail/']"):
+                href = a.get('href') or ''
+                if not href:
+                    continue
+                if href.startswith('/'):
+                    href = f"https://www.skcareers.com{href}"
+                if href not in seen:
+                    seen.add(href)
+                    detail_urls.append(href)
+        records = []
+        for url in detail_urls[:60]:
+            try:
+                r = session.get(url, timeout=45, headers=headers)
+                r.raise_for_status()
+            except Exception:
+                continue
+            soup = BeautifulSoup(r.text, 'lxml')
+            raw = clean_text(soup.get_text(' ', strip=True))
+            if 'SK hynix' not in raw and 'SK하이닉스' not in raw:
+                continue
+            title = clean_text((soup.find('h1') or soup.find('title')).get_text(' ', strip=True))
+            records.append(build_record_from_detail(
+                company=self.company_cfg.name,
+                region=self.source_cfg.region,
+                source_label=self.source_cfg.meta.get('source_label', self.source_cfg.name),
+                title=title,
+                url=url,
+                raw_text=raw,
+            ))
+        return records

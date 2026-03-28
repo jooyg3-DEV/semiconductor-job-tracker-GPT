@@ -6,14 +6,24 @@ from core.models import JobRecord
 
 
 PHD_PATTERNS = ["phd preferred", "ph.d", "ph.d.", "박사 우대", "박사학위 우대"]
-EDU_PATTERNS = ["master", "phd", "ph.d", "석사", "박사"]
+EDU_PATTERNS = ["master", "master's", "phd", "ph.d", "석사", "박사"]
 STRONG_ROLE_PATTERNS = [
     "process engineer",
+    "process integration",
+    "advanced process engineering",
     "field application engineer",
     "application engineer",
+    "applications development engineer",
+    "product applications",
+    "process support engineer",
+    "customer engineer",
     "metrology",
     "deposition",
     "lithography",
+    "packaging",
+    "advanced packaging",
+    "yield",
+    "integration",
     "반도체",
     "공정",
 ]
