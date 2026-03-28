@@ -8,9 +8,9 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 import requests
 
-from core.utils import clean_text, explicit_company_match, is_phd_preferred, looks_like_listing_or_search_page
+from core.utils import clean_text, explicit_company_match, looks_like_listing_or_search_page
 
-COMMON_TERMS = "반도체 공정 석사 박사 field application engineer process engineer process support engineer metrology deposition lithography packaging yield integration"
+COMMON_TERMS = "반도체 공정 field application engineer process engineer process support engineer application engineer customer engineer metrology deposition lithography packaging yield integration"
 TARGET_COMPANIES = [
     "삼성전자DS", "SK하이닉스", "ASML", "Applied Materials", "KLA", "Lam Research", "TEL", "Micron", "ASM", "TSMC", "NVIDIA", "AMD"
 ]
@@ -213,8 +213,8 @@ class SearchPlatformAdapter(BaseAdapter):
                     title=title,
                     url=url,
                     raw_text=raw,
-                    phd_preferred=is_phd_preferred(raw),
-                    job_id=extract_job_id_from_url(url),
+                        job_id=extract_job_id_from_url(url),
                 ))
                 kept += 1
         return records
+

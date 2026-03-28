@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 from adapters.base import BaseAdapter
 from core.models import JobRecord
-from core.utils import clean_text, extract_education_and_experience, infer_job_function, is_phd_preferred, parse_json_ld
+from core.utils import clean_text, extract_education_and_experience, infer_job_function, normalize_location
 
 SITEMAP_URL = "https://www.asml.com/en/job_posting-sitemap.xml"
 
@@ -42,7 +42,6 @@ class ASMLGlobalAdapter(BaseAdapter):
             if m:
                 location = clean_text(m.group(1))
             deadline = "없음"
-            phd = is_phd_preferred(raw)
             records.append(JobRecord(
                 company=self.company_cfg.name,
                 region=self.source_cfg.region,
@@ -52,9 +51,8 @@ class ASMLGlobalAdapter(BaseAdapter):
                 deadline=deadline,
                 qualification=extract_education_and_experience(raw),
                 job_function=infer_job_function(title, raw),
-                location=location,
-                employment_type="",
-                phd_preferred=phd,
+                location=normalize_location(location),
+                employment_type="없음",
                 raw_text=raw,
             ))
         return records

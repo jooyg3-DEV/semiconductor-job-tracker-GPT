@@ -18,7 +18,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive",
 ]
 
-HEADERS = ["검색일", "출처", "마감일", "회사", "공고명", "지원자격", "채용직무", "근무지", "채용형태", "박사우대여부", "링크"]
+HEADERS = ["검색일", "출처", "마감일", "회사", "공고명", "지원자격", "채용직무", "근무지", "채용형태", "경력", "석사", "박사", "링크"]
 STATE_HEADERS = ["sheet_key", "unique_key", "payload_json"]
 CLOSED_SHEET_TITLE = "종료공고"
 T = TypeVar("T")

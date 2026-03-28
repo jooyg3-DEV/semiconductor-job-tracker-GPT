@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import Page
 
 from core.models import JobRecord
-from core.utils import clean_text, extract_education_and_experience, infer_job_function, is_phd_preferred, parse_json_ld
+from core.utils import clean_text, extract_education_and_experience, infer_job_function, normalize_employment_type, normalize_location, parse_json_ld
 
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
@@ -51,9 +51,8 @@ def build_record_from_detail(
         deadline=deadline or "없음",
         qualification=qualification or extract_education_and_experience(raw_text),
         job_function=job_function or infer_job_function(title, raw_text),
-        location=location,
-        employment_type=employment_type,
-        phd_preferred=phd_preferred or is_phd_preferred(raw_text),
+        location=normalize_location(location),
+        employment_type=normalize_employment_type(employment_type),
         job_id=job_id,
         raw_text=raw_text,
     )

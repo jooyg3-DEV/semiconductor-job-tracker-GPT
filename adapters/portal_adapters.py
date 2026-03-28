@@ -11,7 +11,7 @@ from playwright.sync_api import sync_playwright
 from adapters.base import BaseAdapter
 from adapters.playwright_utils import USER_AGENT, build_record_from_detail, collect_candidate_links, extract_job_id_from_url, parse_jobposting_json_ld, safe_goto
 from core.models import JobRecord
-from core.utils import clean_text, extract_education_and_experience, infer_job_function, is_phd_preferred
+from core.utils import clean_text, extract_education_and_experience, infer_job_function
 
 
 class GenericDetailPlaywrightAdapter(BaseAdapter):
@@ -66,7 +66,6 @@ class GenericDetailPlaywrightAdapter(BaseAdapter):
                 location=location,
                 employment_type=employment_type,
                 qualification=qualification,
-                phd_preferred=is_phd_preferred(raw),
                 job_id=extract_job_id_from_url(url),
             ))
         return records

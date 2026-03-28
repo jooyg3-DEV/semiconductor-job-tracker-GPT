@@ -27,7 +27,6 @@ class CompanyConfig:
 class FilterConfig:
     include_keywords: list[str]
     exclude_keywords: list[str]
-    education_rule: str
 
 
 @dataclass
@@ -39,6 +38,7 @@ class RuntimeConfig:
 @dataclass
 class AppConfig:
     companies: list[CompanyConfig]
+    platform_sources: list[SourceConfig]
     filters: FilterConfig
     runtime: RuntimeConfig
 
@@ -55,7 +55,9 @@ class JobRecord:
     job_function: str
     location: str
     employment_type: str
-    phd_preferred: str
+    experience_flag: str = "N"
+    masters_flag: str = "N"
+    phd_flag: str = "N"
     job_id: str = ""
     raw_text: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -83,6 +85,8 @@ class JobRecord:
             self.job_function or "",
             self.location or "",
             self.employment_type or "",
-            self.phd_preferred or "N",
+            self.experience_flag or "N",
+            self.masters_flag or "N",
+            self.phd_flag or "N",
             self.url,
         ]

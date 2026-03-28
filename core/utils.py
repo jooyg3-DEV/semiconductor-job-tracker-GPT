@@ -5,7 +5,18 @@ import re
 from datetime import datetime, timedelta
 from typing import Any
 from urllib.parse import urlparse
+
 from bs4 import BeautifulSoup
+
+
+KOREA_TOKENS = [
+    "korea", "대한민국", "한국", "seoul", "suwon", "hwaseong", "icheon", "cheonan", "daejeon", "gumi", "pyeongtaek",
+]
+EXPERIENCE_TOKENS = [
+    "experience", "experienced", "경력", "신입", "경력무관", "years", "year", "5+", "3+", "2+",
+]
+MASTERS_TOKENS = ["master", "master's", "masters", "msc", "m.s.", "석사"]
+PHD_TOKENS = ["phd", "ph.d", "doctorate", "박사"]
 
 
 def clean_text(text: str | None) -> str:
@@ -38,30 +49,53 @@ def to_deadline_sort_key(deadline: str) -> tuple[int, str]:
     return (1, deadline)
 
 
-def is_phd_preferred(text: str) -> str:
+def detect_flag(text: str, tokens: list[str]) -> str:
     t = (text or "").lower()
-    tokens = ["phd preferred", "ph.d.", "ph.d", "박사 우대", "박사학위 우대"]
     return "Y" if any(token.lower() in t for token in tokens) else "N"
 
 
+def is_phd_preferred(text: str) -> str:
+    return detect_flag(text, PHD_TOKENS)
+
+
+def has_phd(text: str) -> str:
+    return detect_flag(text, PHD_TOKENS)
+
+
+def has_masters(text: str) -> str:
+    return detect_flag(text, MASTERS_TOKENS)
+
+
+def has_experience(text: str) -> str:
+    return detect_flag(text, EXPERIENCE_TOKENS)
+
+
+def summarize_requirements(*texts: str, limit: int = 140) -> str:
+    source = clean_text(" ".join([t for t in texts if t]))
+    if not source:
+        return ""
+    patterns = [
+        r"(신입[^.;\n]{0,40}|경력무관[^.;\n]{0,40}|경력\s*\d+년[^.;\n]{0,40}|\d+\+?\s*years?[^.;\n]{0,40})",
+        r"(석사[^.;\n]{0,40}|박사[^.;\n]{0,40}|master[^.;\n]{0,40}|ph\.?d[^.;\n]{0,40})",
+        r"(preferred qualifications?[^.;\n]{0,80}|minimum qualifications?[^.;\n]{0,80})",
+    ]
+    hits = []
+    low = source.lower()
+    for pat in patterns:
+        for m in re.finditer(pat, low, flags=re.I):
+            hits.append(clean_text(source[m.start():m.end()]))
+    if not hits:
+        hits = [source[:limit]]
+    dedup = []
+    for h in hits:
+        if h and h not in dedup:
+            dedup.append(h)
+    result = ", ".join(dedup)[:limit]
+    return result
+
+
 def extract_education_and_experience(text: str) -> str:
-    t = clean_text(text)
-    edu_match = re.search(
-        r"(master[^.;\n]*|ph\.?d[^.;\n]*|석사[^.;\n]*|박사[^.;\n]*)",
-        t,
-        flags=re.I,
-    )
-    exp_match = re.search(
-        r"((?:\d+\+?\s*years?|신입|경력 무관|experience[^.;\n]*|경력[^.;\n]*))",
-        t,
-        flags=re.I,
-    )
-    parts = []
-    if edu_match:
-        parts.append(clean_text(edu_match.group(1)))
-    if exp_match:
-        parts.append(clean_text(exp_match.group(1)))
-    return " / ".join(parts)
+    return summarize_requirements(text)
 
 
 def infer_job_function(title: str, raw_text: str) -> str:
@@ -70,19 +104,16 @@ def infer_job_function(title: str, raw_text: str) -> str:
         ("field application engineer", "Field Application Engineer"),
         ("application engineer", "Application Engineer"),
         ("process support engineer", "Process Support Engineer"),
-        ("applications development engineer", "Applications Development Engineer"),
-        ("product applications", "Product Applications"),
-        ("customer engineer", "Customer Engineer"),
-        ("process integration", "Process Integration"),
-        ("advanced process engineering", "Advanced Process Engineering"),
         ("process engineer", "Process Engineer"),
-        ("integration", "Integration"),
-        ("yield", "Yield"),
+        ("customer engineer", "Customer Engineer"),
         ("metrology", "Metrology"),
-        ("lithography", "Lithography"),
         ("deposition", "Deposition"),
-        ("etch", "Etch"),
+        ("lithography", "Lithography"),
         ("packaging", "Packaging"),
+        ("yield", "Yield"),
+        ("integration", "Integration"),
+        ("반도체", "반도체"),
+        ("공정", "공정"),
     ]
     for needle, label in mapping:
         if needle in text:
@@ -90,58 +121,60 @@ def infer_job_function(title: str, raw_text: str) -> str:
     return clean_text(title)
 
 
-def deadline_passed_with_grace(deadline_str: str, today_str: str) -> bool:
-    if not deadline_str or deadline_str == "없음":
-        return False
-    try:
-        d = datetime.strptime(deadline_str, "%Y-%m-%d")
-        today = datetime.strptime(today_str, "%Y-%m-%d")
-    except ValueError:
-        return False
-    return today >= d + timedelta(days=1)
-
-
-_KOREA_LOCATION_TERMS = [
-    "korea", "대한민국", "한국", "seoul", "서울", "경기", "suwon", "수원",
-    "hwaseong", "화성", "pyeongtaek", "평택", "icheon", "이천", "cheonan", "천안",
-    "daejeon", "대전", "gumi", "구미", "osan", "오산", "gihung", "기흥",
-    "yongin", "용인", "incheon", "인천", "pangyo", "판교", "청주", "cheongju",
-]
-
-
-def infer_region_from_location(location: str, fallback_region: str = "") -> str:
-    text = (location or "").strip().lower()
-    if text:
-        if any(term in text for term in _KOREA_LOCATION_TERMS):
-            return "국내"
-        return "글로벌"
+def infer_region_from_location(location: str, fallback_region: str) -> str:
+    loc = (location or "").lower()
+    if any(tok in loc for tok in KOREA_TOKENS):
+        return "국내"
     return fallback_region or "글로벌"
 
 
-GENERIC_SEARCH_URL_TOKENS = [
-    "recruitsearch", "/search", "search?", "search/", "theme=", "keyword=", "query=", "jobs/search",
-]
-GENERIC_SEARCH_TITLE_PATTERNS = [
-    "top중견중소", "신입 인기 top", "경력 인기 top", "오늘 뜬 인기 top", "인턴·교육생", "반도체·전기·전자",
-    "공고리스트를 불러오고 있습니다", "최근검색기록", "검색조건초기화", "전체 공고 이동하기", "조건 추가 각각 최대",
-    "채용설명회", "캐치tv", "인재pick", "제안관리", "진학상담", "대학원카페", "연구실정보"
-]
+def normalize_location(location: str) -> str:
+    return clean_text(location).replace(" | ", ", ")
 
 
-def looks_like_listing_or_search_page(url: str, title: str = "", text: str = "") -> bool:
-    corpus = f"{url} {title} {text}".lower()
-    if any(tok in corpus for tok in GENERIC_SEARCH_URL_TOKENS):
-        return True
-    return any(pat.lower() in corpus for pat in GENERIC_SEARCH_TITLE_PATTERNS)
+def normalize_employment_type(value: str) -> str:
+    v = clean_text(value)
+    mapping = {
+        "full time": "Full-time",
+        "full-time": "Full-time",
+        "part time": "Part-time",
+        "part-time": "Part-time",
+        "intern": "Intern",
+        "contract": "Contract",
+        "regular": "Regular",
+        "temporary": "Temporary",
+    }
+    low = v.lower()
+    for k, out in mapping.items():
+        if k in low:
+            return out
+    return v or "없음"
+
+
+def deadline_passed_with_grace(deadline: str, today_str: str) -> bool:
+    if not deadline or deadline == "없음":
+        return False
+    for fmt in ("%Y-%m-%d", "%Y.%m.%d", "%Y/%m/%d"):
+        try:
+            dd = datetime.strptime(deadline[:10].replace(".", "-").replace("/", "-"), "%Y-%m-%d")
+            today = datetime.strptime(today_str, "%Y-%m-%d")
+            return today > dd + timedelta(days=1)
+        except Exception:
+            continue
+    return False
 
 
 def explicit_company_match(text: str, aliases: list[str]) -> bool:
-    t = text.lower()
+    t = (text or "").lower()
     return any(alias.lower() in t for alias in aliases)
 
 
-def domain_of(url: str) -> str:
-    try:
-        return urlparse(url).netloc.lower()
-    except Exception:
-        return ""
+def looks_like_listing_or_search_page(url: str, title: str, raw: str) -> bool:
+    text = f"{url} {title} {raw}".lower()
+    tokens = ["search", "recruitsearch", "listfiltermode", "sort=", "keyword=", "전체 공고", "채용공고 검색", "인기 top"]
+    return any(tok in text for tok in tokens)
+
+
+def shorten_cell(value: str, limit: int = 1000) -> str:
+    v = clean_text(value)
+    return v[:limit] if len(v) > limit else v

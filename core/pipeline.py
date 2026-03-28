@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from core.models import JobRecord
-from core.utils import deadline_passed_with_grace, to_deadline_sort_key
+from core.utils import deadline_passed_with_grace
 
 
 def reconcile_records(sheet_key: str, incoming_records: list[JobRecord], state_manager, today_str: str, miss_threshold: int):
@@ -26,7 +26,9 @@ def reconcile_records(sheet_key: str, incoming_records: list[JobRecord], state_m
             "job_function": record.job_function,
             "location": record.location,
             "employment_type": record.employment_type,
-            "phd_preferred": record.phd_preferred,
+            "experience_flag": record.experience_flag,
+            "masters_flag": record.masters_flag,
+            "phd_flag": record.phd_flag,
             "miss_count": 0,
             "closed": False,
         }
@@ -54,13 +56,32 @@ def reconcile_records(sheet_key: str, incoming_records: list[JobRecord], state_m
                 job_function=item.get("job_function", ""),
                 location=item.get("location", ""),
                 employment_type=item.get("employment_type", ""),
-                phd_preferred=item.get("phd_preferred", "N"),
+                experience_flag=item.get("experience_flag", "N"),
+                masters_flag=item.get("masters_flag", "N"),
+                phd_flag=item.get("phd_flag", "N"),
+                job_id=item.get("job_id", ""),
+                raw_text="",
+            ))
+        else:
+            active.append(JobRecord(
+                company=item["company"],
+                region=item.get("region", ""),
+                source=item.get("source", ""),
+                title=item.get("title", ""),
+                url=item.get("url", ""),
+                deadline=item.get("deadline", "없음"),
+                qualification=item.get("qualification", ""),
+                job_function=item.get("job_function", ""),
+                location=item.get("location", ""),
+                employment_type=item.get("employment_type", ""),
+                experience_flag=item.get("experience_flag", "N"),
+                masters_flag=item.get("masters_flag", "N"),
+                phd_flag=item.get("phd_flag", "N"),
                 job_id=item.get("job_id", ""),
                 raw_text="",
             ))
 
-    active = [r for r in active if not deadline_passed_with_grace(r.deadline, today_str)]
-    active.sort(key=lambda r: to_deadline_sort_key(r.deadline))
-    closed.sort(key=lambda r: (r.company, r.title))
     state_manager.set_sheet_state(sheet_key, state)
+    active.sort(key=lambda r: (r.effective_region != "국내", r.deadline == "없음", r.deadline))
+    closed.sort(key=lambda r: (r.company, r.deadline == "없음", r.deadline))
     return active, closed

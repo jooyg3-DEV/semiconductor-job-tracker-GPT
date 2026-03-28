@@ -93,7 +93,6 @@ class TSMCAdapter(BaseAdapter):
                 location=location,
                 employment_type=employment,
                 qualification=qual,
-                phd_preferred='Y' if any(token in raw.lower() for token in ['phd preferred', 'ph.d', 'ph.d.', '박사 우대']) else 'N',
                 job_id=extract_job_id_from_url(url),
             ))
         return records
