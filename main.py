@@ -10,7 +10,7 @@ from adapters.registry import build_adapter
 from config.loader import load_config
 from core.dedup import dedupe_records
 from core.filtering import filter_records
-from core.models import CompanyConfig, JobRecord, SourceConfig
+from core.models import CompanyConfig, JobRecord
 from core.pipeline import reconcile_records
 from sheets.google_sheets import GoogleSheetsClient
 from state.state_manager import SheetStateManager
@@ -20,7 +20,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["sync", "init"], default="sync")
     parser.add_argument("--companies", default="", help="Comma-separated company names to process during sync. Empty means all companies.")
-    parser.add_argument("--run-platforms", choices=["all", "none", "only", "linkedin", "others"], default="all")
+    parser.add_argument("--run-platforms", choices=["all", "none", "only", "others", "linkedin", "debug"], default="all")
+    parser.add_argument("--debug-company", default="")
+    parser.add_argument("--debug-platform", default="")
     return parser.parse_args()
 
 
@@ -38,19 +40,29 @@ def _run_sources(company_cfg: CompanyConfig, config, grouped_records: dict[str, 
         grouped_records[company_cfg.name].extend(filtered)
 
 
-def _run_platforms(config, selected_companies: set[str], grouped_records: dict[str, list[JobRecord]], mode: str = "all") -> None:
+def _should_run_platform(source_name: str, run_mode: str, debug_platform: str) -> bool:
+    if run_mode == "only" or run_mode == "all":
+        return True
+    if run_mode == "others":
+        return source_name in {"사람인", "잡코리아", "링커리어"}
+    if run_mode == "linkedin":
+        return source_name == "링크드인"
+    if run_mode == "debug":
+        return source_name == debug_platform
+    return False
+
+
+def _run_platforms(config, selected_companies: set[str], grouped_records: dict[str, list[JobRecord]], *, run_mode: str, debug_company: str = "", debug_platform: str = "") -> None:
     if not config.platform_sources:
         return
     pseudo_company = CompanyConfig(name="채용플랫폼", sources=[])
+    targets = {debug_company} if debug_company else set(selected_companies)
     for source_cfg in config.platform_sources:
-        src_name = source_cfg.meta.get("source_label", source_cfg.name)
-        if mode == "linkedin" and src_name != "링크드인":
-            continue
-        if mode == "others" and src_name == "링크드인":
+        if not _should_run_platform(source_cfg.name, run_mode, debug_platform):
             continue
         source_cfg.meta = dict(source_cfg.meta or {})
-        if selected_companies:
-            source_cfg.meta["target_companies"] = sorted(selected_companies)
+        if targets:
+            source_cfg.meta["target_companies"] = sorted(targets)
         adapter = SearchPlatformAdapter(pseudo_company, source_cfg)
         try:
             records = adapter.fetch()
@@ -58,10 +70,9 @@ def _run_platforms(config, selected_companies: set[str], grouped_records: dict[s
         except Exception as exc:
             print(f"[WARN] 채용플랫폼/{source_cfg.name}: {exc}")
             records = []
-        # route by actual record.company
         by_company: dict[str, list[JobRecord]] = defaultdict(list)
         for r in records:
-            if selected_companies and r.company not in selected_companies:
+            if targets and r.company not in targets:
                 continue
             by_company[r.company].append(r)
         for company_name, recs in by_company.items():
@@ -90,17 +101,16 @@ def main() -> None:
     state = SheetStateManager(sheets)
     grouped_records: dict[str, list[JobRecord]] = defaultdict(list)
 
-    if args.run_platforms != "only":
+    if args.run_platforms not in {"only", "others", "linkedin", "debug"}:
         for company_cfg in companies_to_process:
             _run_sources(company_cfg, config, grouped_records)
 
     if args.run_platforms != "none":
-        plat_mode = "all" if args.run_platforms in ("all", "only") else args.run_platforms
-        _run_platforms(config, selected_companies, grouped_records, mode=plat_mode)
+        _run_platforms(config, selected_companies, grouped_records, run_mode=args.run_platforms, debug_company=args.debug_company, debug_platform=args.debug_platform)
 
     today_str = datetime.now().strftime("%Y-%m-%d")
     all_closed: list[JobRecord] = []
-    targets = selected_companies or set(real_company_names)
+    targets = {args.debug_company} if args.debug_company else (selected_companies or set(real_company_names))
     for sheet_key in real_company_names:
         if sheet_key not in targets:
             continue

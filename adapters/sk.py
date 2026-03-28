@@ -31,11 +31,6 @@ class SKHynixAdapter(BaseAdapter):
                 if href not in seen:
                     seen.add(href)
                     detail_urls.append(href)
-            for m in __import__("re").finditer(r"/Recruit/Detail/[A-Z0-9]+", r.text):
-                href = f"https://www.skcareers.com{m.group(0)}"
-                if href not in seen:
-                    seen.add(href)
-                    detail_urls.append(href)
         records = []
         for url in detail_urls[:60]:
             try:

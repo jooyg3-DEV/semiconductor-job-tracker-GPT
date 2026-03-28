@@ -1,14 +1,21 @@
 from __future__ import annotations
 
 import re
-from urllib.parse import urljoin, urlparse, parse_qs
+from urllib.parse import parse_qs, urljoin, urlparse
 
 from bs4 import BeautifulSoup
 from playwright.sync_api import Page
 
 from core.models import JobRecord
-from core.utils import clean_text, extract_education_and_experience, infer_job_function, normalize_employment_type, normalize_location, parse_json_ld, infer_recruitment_type
-
+from core.utils import (
+    clean_text,
+    extract_education_and_experience,
+    infer_job_function,
+    infer_recruitment_type,
+    normalize_employment_type,
+    normalize_location,
+    parse_json_ld,
+)
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
 
@@ -39,7 +46,7 @@ def build_record_from_detail(
     employment_type: str = "",
     qualification: str = "",
     job_function: str = "",
-    phd_preferred: str = "N",
+    recruitment_type: str = "",
     job_id: str = "",
 ) -> JobRecord:
     return JobRecord(
@@ -48,14 +55,14 @@ def build_record_from_detail(
         source=source_label,
         title=clean_text(title),
         url=url,
-        deadline=deadline or "없음",
+        deadline=clean_text(deadline) or "없음",
         qualification=qualification or extract_education_and_experience(raw_text),
         job_function=job_function or infer_job_function(title, raw_text),
         location=normalize_location(location),
         employment_type=normalize_employment_type(employment_type),
-        recruitment_type=infer_recruitment_type(title, raw_text, deadline),
+        recruitment_type=recruitment_type or infer_recruitment_type(title, raw_text, deadline),
         job_id=job_id,
-        raw_text=raw_text,
+        raw_text=clean_text(raw_text),
     )
 
 

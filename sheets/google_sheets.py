@@ -22,6 +22,7 @@ HEADERS = ["검색일", "출처", "마감일", "회사", "공고명", "지원자
 STATE_HEADERS = ["sheet_key", "unique_key", "payload_json"]
 CLOSED_SHEET_TITLE = "종료공고"
 T = TypeVar("T")
+RECRUITMENT_RANK = {"인재풀": 0, "채용시 마감": 1, "상시": 2, "일반": 3}
 
 
 class GoogleSheetsClient:
@@ -78,31 +79,27 @@ class GoogleSheetsClient:
             return ws
         if not create_if_missing:
             return None
-        ws = self._with_retry(lambda: self.sh.add_worksheet(title=title, rows=100, cols=20))
+        ws = self._with_retry(lambda: self.sh.add_worksheet(title=title, rows=100, cols=24))
         self._worksheet_cache[title] = ws
         return ws
 
     def reset_and_initialize(self, company_names: list[str]) -> None:
-        # Ensure there is a keeper worksheet while deleting everything else.
         self._populate_cache()
         keeper = next(iter(self._worksheet_cache.values()), None)
         if keeper is None:
-            keeper = self._with_retry(lambda: self.sh.add_worksheet(title="__INIT__", rows=10, cols=10))
+            keeper = self._with_retry(lambda: self.sh.add_worksheet(title="__INIT__", rows=10, cols=24))
             self._worksheet_cache[keeper.title] = keeper
-        # Delete all but keeper
         for title, ws in list(self._worksheet_cache.items()):
             if ws.id == keeper.id:
                 continue
             self._with_retry(lambda ws=ws: self.sh.del_worksheet(ws))
             self._worksheet_cache.pop(title, None)
             time.sleep(0.5)
-        # Rename keeper to first company or _STATE if no companies
         first_title = company_names[0] if company_names else "_STATE"
         self._with_retry(lambda: keeper.update_title(first_title))
         self._worksheet_cache = {first_title: keeper}
         self._replace_sheet_values(keeper, [HEADERS] if first_title != "_STATE" else [STATE_HEADERS], clear_first=True)
         print(f"[INFO] initialized worksheet {first_title}")
-
         for title in company_names[1:] + [CLOSED_SHEET_TITLE, "_STATE"]:
             ws = self._ensure_worksheet(title, create_if_missing=True)
             headers = STATE_HEADERS if title == "_STATE" else HEADERS
@@ -135,7 +132,6 @@ class GoogleSheetsClient:
     def _replace_sheet_values(self, ws, values: list[list[str]], *, clear_first: bool = False) -> None:
         if clear_first:
             self._with_retry(lambda: ws.clear())
-        # prevent single-cell overflow due to huge strings
         sanitized = [[self._sanitize_cell(v) for v in row] for row in values]
         end_col = self._col_letter(len(sanitized[0]))
         end_row = len(sanitized)
@@ -158,42 +154,24 @@ class GoogleSheetsClient:
 
     @staticmethod
     def _sorted_records(records: list[JobRecord]) -> list[JobRecord]:
-        recruit_rank = {"인재풀": 0, "채용시 마감": 1, "상시": 2, "일반": 3}
-        def source_rank(r: JobRecord):
+        def region_rank(r: JobRecord):
             return 0 if r.effective_region == "국내" else 1
+        def recruitment_rank(r: JobRecord):
+            return RECRUITMENT_RANK.get(r.recruitment_type or "일반", 9)
         def deadline_rank(r: JobRecord):
             return (0, "") if not r.deadline or r.deadline == "없음" else (1, r.deadline)
-        return sorted(records, key=lambda r: (recruit_rank.get(r.recruitment_type,9), source_rank(r), deadline_rank(r), r.title))
+        return sorted(records, key=lambda r: (region_rank(r), recruitment_rank(r), deadline_rank(r), r.title))
 
     @staticmethod
     def _sorted_closed_records(records: list[JobRecord]) -> list[JobRecord]:
-        recruit_rank = {"인재풀": 0, "채용시 마감": 1, "상시": 2, "일반": 3}
+        def recruitment_rank(r: JobRecord):
+            return RECRUITMENT_RANK.get(r.recruitment_type or "일반", 9)
         def deadline_rank(r: JobRecord):
             return (0, "") if not r.deadline or r.deadline == "없음" else (1, r.deadline)
-        return sorted(records, key=lambda r: (recruit_rank.get(r.recruitment_type,9), r.company, deadline_rank(r), r.title))
+        return sorted(records, key=lambda r: (r.company, recruitment_rank(r), deadline_rank(r), r.title))
 
     def _apply_strikethrough(self, ws, start_row: int, end_row: int) -> None:
-        body = {
-            "requests": [
-                {
-                    "repeatCell": {
-                        "range": {
-                            "sheetId": ws.id,
-                            "startRowIndex": start_row - 1,
-                            "endRowIndex": end_row,
-                            "startColumnIndex": 0,
-                            "endColumnIndex": 14,
-                        },
-                        "cell": {
-                            "userEnteredFormat": {
-                                "textFormat": {"strikethrough": True}
-                            }
-                        },
-                        "fields": "userEnteredFormat.textFormat.strikethrough",
-                    }
-                }
-            ]
-        }
+        body = {"requests": [{"repeatCell": {"range": {"sheetId": ws.id, "startRowIndex": start_row - 1, "endRowIndex": end_row, "startColumnIndex": 0, "endColumnIndex": len(HEADERS)}, "cell": {"userEnteredFormat": {"textFormat": {"strikethrough": True}}}, "fields": "userEnteredFormat.textFormat.strikethrough"}}]}
         self._with_retry(lambda: self.service.spreadsheets().batchUpdate(spreadsheetId=self.spreadsheet_id, body=body).execute())
 
     def read_state_rows(self) -> list[list[str]]:

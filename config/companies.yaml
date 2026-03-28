@@ -149,7 +149,7 @@ companies:
       - name: "AMD-글로벌"
         url: "https://careers.amd.com/careers-home/jobs"
         source_type: "official"
-        parser: "amd_detail"
+        parser: "generic_detail"
         enabled: true
         region: "글로벌"
         meta: {source_label: "공식-글로벌"}
@@ -161,53 +161,25 @@ platform_sources:
     parser: "platform_search"
     enabled: true
     region: "국내"
-    meta: {source_label: "사람인", platform_region: "국내"}
+    meta: {source_label: "사람인", platform_region: "국내", max_candidates: 20, max_details: 10}
   - name: "링크드인"
     url: "https://www.linkedin.com/jobs/"
     source_type: "platform"
     parser: "platform_search"
     enabled: true
     region: "글로벌"
-    meta: {source_label: "링크드인", platform_region: "글로벌"}
+    meta: {source_label: "링크드인", platform_region: "글로벌", max_candidates: 20, max_details: 10}
   - name: "잡코리아"
     url: "https://www.jobkorea.co.kr/"
     source_type: "platform"
     parser: "platform_search"
     enabled: true
     region: "국내"
-    meta: {source_label: "잡코리아", platform_region: "국내"}
-  - name: "잡다"
-    url: "https://www.jobda.im/"
-    source_type: "platform"
-    parser: "platform_search"
-    enabled: true
-    region: "국내"
-    meta: {source_label: "잡다", platform_region: "국내"}
-  - name: "하이브레인넷"
-    url: "https://www.hibrain.net/"
-    source_type: "platform"
-    parser: "platform_search"
-    enabled: true
-    region: "국내"
-    meta: {source_label: "하이브레인넷", platform_region: "국내"}
-  - name: "캐치"
-    url: "https://www.catch.co.kr/"
-    source_type: "platform"
-    parser: "platform_search"
-    enabled: true
-    region: "국내"
-    meta: {source_label: "캐치", platform_region: "국내"}
+    meta: {source_label: "잡코리아", platform_region: "국내", max_candidates: 20, max_details: 10}
   - name: "링커리어"
     url: "https://linkareer.com/"
     source_type: "platform"
     parser: "platform_search"
     enabled: true
     region: "국내"
-    meta: {source_label: "링커리어", platform_region: "국내"}
-  - name: "잡플래닛"
-    url: "https://www.jobplanet.co.kr/"
-    source_type: "platform"
-    parser: "platform_search"
-    enabled: true
-    region: "국내"
-    meta: {source_label: "잡플래닛", platform_region: "국내"}
+    meta: {source_label: "링커리어", platform_region: "국내", max_candidates: 20, max_details: 10}
