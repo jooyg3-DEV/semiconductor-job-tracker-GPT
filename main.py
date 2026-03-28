@@ -63,6 +63,7 @@ def _run_platforms(config, selected_companies: set[str], grouped_records: dict[s
         source_cfg.meta = dict(source_cfg.meta or {})
         if targets:
             source_cfg.meta["target_companies"] = sorted(targets)
+        source_cfg.meta["debug"] = (run_mode == "debug")
         adapter = SearchPlatformAdapter(pseudo_company, source_cfg)
         try:
             records = adapter.fetch()
