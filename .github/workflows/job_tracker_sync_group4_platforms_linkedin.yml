@@ -1,9 +1,9 @@
-name: job-tracker-sync-group4-platforms
+name: job-tracker-sync-group4-linkedin
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "25 4,15 * * *"
+    - cron: "35 4,15 * * *"
 
 jobs:
   run-job-tracker:
@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
       - run: pip install -r requirements.txt
       - run: python -m playwright install chromium
-      - run: python main.py --mode sync --run-platforms others
+      - run: python main.py --mode sync --run-platforms linkedin
