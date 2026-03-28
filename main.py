@@ -18,6 +18,11 @@ from state.state_manager import SheetStateManager
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["sync", "init"], default="sync")
+    parser.add_argument(
+        "--companies",
+        default="",
+        help="Comma-separated company names to process during sync. Empty means all companies.",
+    )
     return parser.parse_args()
 
 
@@ -32,6 +37,12 @@ def main() -> None:
         sheets.reset_and_initialize(real_company_names)
         print(f"[INFO] initialized {len(real_company_names)} company sheets + 종료공고 + _STATE")
         return
+
+    selected_companies = {name.strip() for name in args.companies.split(",") if name.strip()}
+    if selected_companies:
+        config.companies = [c for c in config.companies if c.name in selected_companies]
+        real_company_names = [name for name in real_company_names if name in selected_companies]
+        print(f"[INFO] sync subset companies={sorted(selected_companies)}")
 
     state = SheetStateManager(sheets)
     grouped_records: dict[str, list[JobRecord]] = defaultdict(list)
