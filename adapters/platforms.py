@@ -72,7 +72,8 @@ class SearchPlatformAdapter(BaseAdapter):
         if platform == "잡코리아":
             return f"https://www.jobkorea.co.kr/Search/?stext={quote_plus(query)}"
         if platform == "링크드인":
-            return f"https://www.linkedin.com/jobs/search/?keywords={quote_plus(company_name + " process engineer semiconductor metrology lithography deposition packaging field application engineer")}"
+            linkedin_query = company_name + " process engineer semiconductor metrology lithography deposition packaging field application engineer"
+            return f"https://www.linkedin.com/jobs/search/?keywords={quote_plus(linkedin_query)}"
         if platform == "링커리어":
             return f"https://linkareer.com/search?query={quote_plus(query)}"
         if platform == "잡플래닛":
