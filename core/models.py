@@ -55,6 +55,7 @@ class JobRecord:
     job_function: str
     location: str
     employment_type: str
+    recruitment_type: str = "일반"
     experience_flag: str = "N"
     masters_flag: str = "N"
     phd_flag: str = "N"
@@ -85,6 +86,7 @@ class JobRecord:
             self.job_function or "",
             self.location or "",
             self.employment_type or "",
+            self.recruitment_type or "일반",
             self.experience_flag or "N",
             self.masters_flag or "N",
             self.phd_flag or "N",

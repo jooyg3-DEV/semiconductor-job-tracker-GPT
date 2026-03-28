@@ -10,7 +10,7 @@ import requests
 
 from core.utils import clean_text, explicit_company_match, looks_like_listing_or_search_page
 
-COMMON_TERMS = "반도체 공정 field application engineer process engineer process support engineer application engineer customer engineer metrology deposition lithography packaging yield integration"
+COMMON_TERMS = "반도체 공정 process engineer process support engineer field application engineer application engineer customer engineer metrology deposition lithography packaging yield integration"
 TARGET_COMPANIES = [
     "삼성전자DS", "SK하이닉스", "ASML", "Applied Materials", "KLA", "Lam Research", "TEL", "Micron", "ASM", "TSMC", "NVIDIA", "AMD"
 ]
@@ -18,10 +18,10 @@ ALIASES = {
     "삼성전자DS": ["삼성전자", "samsung", "device solutions", "ds division", "삼성 ds", "samsung electronics"],
     "SK하이닉스": ["sk hynix", "sk하이닉스", "하이닉스"],
     "ASML": ["asml"],
-    "Applied Materials": ["applied materials", "어플라이드머티어리얼즈", "어플라이드 머티어리얼즈"],
+    "Applied Materials": ["applied materials", "어플라이드머티어리얼즈", "어플라이드 머티어리얼즈", "어플라이드머티어리얼즈코리아", "amat"],
     "KLA": ["kla", "k l a", "kla corporation"],
     "Lam Research": ["lam research", "램리서치", "lamresearch"],
-    "TEL": ["tokyo electron", "tel", "도쿄일렉트론", "tokyoelectron", "tokyo electron korea"],
+    "TEL": ["tokyo electron", "tel", "도쿄일렉트론", "tokyoelectron", "tokyo electron korea", "도쿄일렉트론코리아"],
     "Micron": ["micron", "마이크론"],
     "ASM": ["asm international", "asm", "에이에스엠"],
     "TSMC": ["tsmc", "taiwan semiconductor", "taiwan semiconductor manufacturing", "대만반도체"],
@@ -61,7 +61,7 @@ JOBISH_TERMS = [
 
 
 class SearchPlatformAdapter(BaseAdapter):
-    max_details_per_company = 6
+    max_details_per_company = 4
 
     def _search_url(self, company_name: str) -> str:
         query = f"{company_name} {COMMON_TERMS}"
@@ -179,7 +179,8 @@ class SearchPlatformAdapter(BaseAdapter):
         platform_region = self.source_cfg.meta.get("platform_region", self.source_cfg.region)
         platform = self.source_cfg.meta.get("source_label", self.source_cfg.name)
 
-        for target_company in TARGET_COMPANIES:
+        target_companies = self.source_cfg.meta.get("target_companies") or TARGET_COMPANIES
+        for target_company in target_companies:
             search_url = self._search_url(target_company)
             try:
                 with sync_playwright() as p:

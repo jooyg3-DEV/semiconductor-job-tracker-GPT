@@ -18,7 +18,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive",
 ]
 
-HEADERS = ["검색일", "출처", "마감일", "회사", "공고명", "지원자격", "채용직무", "근무지", "채용형태", "경력", "석사", "박사", "링크"]
+HEADERS = ["검색일", "출처", "마감일", "회사", "공고명", "지원자격", "채용직무", "근무지", "채용형태", "모집구분", "경력", "석사", "박사", "링크"]
 STATE_HEADERS = ["sheet_key", "unique_key", "payload_json"]
 CLOSED_SHEET_TITLE = "종료공고"
 T = TypeVar("T")
@@ -101,6 +101,7 @@ class GoogleSheetsClient:
         self._with_retry(lambda: keeper.update_title(first_title))
         self._worksheet_cache = {first_title: keeper}
         self._replace_sheet_values(keeper, [HEADERS] if first_title != "_STATE" else [STATE_HEADERS], clear_first=True)
+        print(f"[INFO] initialized worksheet {first_title}")
 
         for title in company_names[1:] + [CLOSED_SHEET_TITLE, "_STATE"]:
             ws = self._ensure_worksheet(title, create_if_missing=True)
@@ -157,17 +158,19 @@ class GoogleSheetsClient:
 
     @staticmethod
     def _sorted_records(records: list[JobRecord]) -> list[JobRecord]:
+        recruit_rank = {"인재풀": 0, "채용시 마감": 1, "상시": 2, "일반": 3}
         def source_rank(r: JobRecord):
             return 0 if r.effective_region == "국내" else 1
         def deadline_rank(r: JobRecord):
             return (0, "") if not r.deadline or r.deadline == "없음" else (1, r.deadline)
-        return sorted(records, key=lambda r: (source_rank(r), deadline_rank(r), r.title))
+        return sorted(records, key=lambda r: (recruit_rank.get(r.recruitment_type,9), source_rank(r), deadline_rank(r), r.title))
 
     @staticmethod
     def _sorted_closed_records(records: list[JobRecord]) -> list[JobRecord]:
+        recruit_rank = {"인재풀": 0, "채용시 마감": 1, "상시": 2, "일반": 3}
         def deadline_rank(r: JobRecord):
             return (0, "") if not r.deadline or r.deadline == "없음" else (1, r.deadline)
-        return sorted(records, key=lambda r: (r.company, deadline_rank(r), r.title))
+        return sorted(records, key=lambda r: (recruit_rank.get(r.recruitment_type,9), r.company, deadline_rank(r), r.title))
 
     def _apply_strikethrough(self, ws, start_row: int, end_row: int) -> None:
         body = {
@@ -179,7 +182,7 @@ class GoogleSheetsClient:
                             "startRowIndex": start_row - 1,
                             "endRowIndex": end_row,
                             "startColumnIndex": 0,
-                            "endColumnIndex": 11,
+                            "endColumnIndex": 14,
                         },
                         "cell": {
                             "userEnteredFormat": {

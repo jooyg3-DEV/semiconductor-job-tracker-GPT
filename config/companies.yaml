@@ -149,7 +149,7 @@ companies:
       - name: "AMD-글로벌"
         url: "https://careers.amd.com/careers-home/jobs"
         source_type: "official"
-        parser: "generic_detail"
+        parser: "amd_detail"
         enabled: true
         region: "글로벌"
         meta: {source_label: "공식-글로벌"}

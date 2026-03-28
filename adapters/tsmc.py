@@ -22,7 +22,7 @@ class TSMCAdapter(BaseAdapter):
             page = browser.new_page(user_agent=USER_AGENT)
             safe_goto(page, self.source_cfg.url)
             page.wait_for_timeout(5000)
-            for _ in range(5):
+            for _ in range(8):
                 html = page.content()
                 patterns = [
                     r'https://careers\.tsmc\.com/en_US/careers/JobDetail\?jobId=\d+[^"\']*',
@@ -50,7 +50,7 @@ class TSMCAdapter(BaseAdapter):
                     if 'JobDetail' in full and full not in seen:
                         seen.add(full)
                         job_links.append(full)
-                next_button = page.locator("a[aria-label*='Next'], a:has-text('Next'), button:has-text('Next')")
+                next_button = page.locator("a[aria-label*='Next'], a:has-text('Next'), button:has-text('Next'), button[title*='Next']")
                 if next_button.count() == 0:
                     break
                 try:
@@ -62,13 +62,23 @@ class TSMCAdapter(BaseAdapter):
 
         headers = {"User-Agent": USER_AGENT}
         records = []
-        for url in job_links[:80]:
+        for url in job_links[:120]:
+            html = ""
             try:
                 r = requests.get(url, headers=headers, timeout=45)
                 r.raise_for_status()
+                html = r.text
             except Exception:
-                continue
-            html = r.text
+                try:
+                    with sync_playwright() as p:
+                        browser = p.chromium.launch(headless=True)
+                        page = browser.new_page(user_agent=USER_AGENT)
+                        safe_goto(page, url)
+                        page.wait_for_timeout(2000)
+                        html = page.content()
+                        browser.close()
+                except Exception:
+                    continue
             soup = BeautifulSoup(html, 'lxml')
             raw = clean_text(soup.get_text(' ', strip=True))
             data = parse_jobposting_json_ld(html)

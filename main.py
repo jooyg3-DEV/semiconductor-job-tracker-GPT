@@ -20,7 +20,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["sync", "init"], default="sync")
     parser.add_argument("--companies", default="", help="Comma-separated company names to process during sync. Empty means all companies.")
-    parser.add_argument("--run-platforms", choices=["all", "none", "only"], default="all")
+    parser.add_argument("--run-platforms", choices=["all", "none", "only", "linkedin", "others"], default="all")
     return parser.parse_args()
 
 
@@ -38,11 +38,16 @@ def _run_sources(company_cfg: CompanyConfig, config, grouped_records: dict[str, 
         grouped_records[company_cfg.name].extend(filtered)
 
 
-def _run_platforms(config, selected_companies: set[str], grouped_records: dict[str, list[JobRecord]]) -> None:
+def _run_platforms(config, selected_companies: set[str], grouped_records: dict[str, list[JobRecord]], mode: str = "all") -> None:
     if not config.platform_sources:
         return
     pseudo_company = CompanyConfig(name="채용플랫폼", sources=[])
     for source_cfg in config.platform_sources:
+        src_name = source_cfg.meta.get("source_label", source_cfg.name)
+        if mode == "linkedin" and src_name != "링크드인":
+            continue
+        if mode == "others" and src_name == "링크드인":
+            continue
         source_cfg.meta = dict(source_cfg.meta or {})
         if selected_companies:
             source_cfg.meta["target_companies"] = sorted(selected_companies)
@@ -90,7 +95,8 @@ def main() -> None:
             _run_sources(company_cfg, config, grouped_records)
 
     if args.run_platforms != "none":
-        _run_platforms(config, selected_companies, grouped_records)
+        plat_mode = "all" if args.run_platforms in ("all", "only") else args.run_platforms
+        _run_platforms(config, selected_companies, grouped_records, mode=plat_mode)
 
     today_str = datetime.now().strftime("%Y-%m-%d")
     all_closed: list[JobRecord] = []

@@ -3,7 +3,7 @@ from __future__ import annotations
 from adapters.asml_global import ASMLGlobalAdapter
 from adapters.base import BaseAdapter
 from adapters.generic_playwright import GenericPlaywrightAdapter
-from adapters.portal_adapters import ApplyInAdapter, ASMAdapter, CareerLinkAdapter, RecruiterAdapter, WorkdayAdapter, GenericDetailPlaywrightAdapter
+from adapters.portal_adapters import ApplyInAdapter, ASMAdapter, CareerLinkAdapter, RecruiterAdapter, WorkdayAdapter, GenericDetailPlaywrightAdapter, AMDAdapter
 from adapters.platforms import SearchPlatformAdapter
 from adapters.samsung import SamsungDSAdapter
 from adapters.sk import SKHynixAdapter
@@ -34,4 +34,6 @@ def build_adapter(company_cfg, source_cfg) -> BaseAdapter:
         return SearchPlatformAdapter(company_cfg, source_cfg)
     if parser == "generic_detail":
         return GenericDetailPlaywrightAdapter(company_cfg, source_cfg)
+    if parser == "amd_detail":
+        return AMDAdapter(company_cfg, source_cfg)
     return GenericPlaywrightAdapter(company_cfg, source_cfg)
