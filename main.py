@@ -78,7 +78,11 @@ def _append_filter_debug_rows(csv_path: Path, platform: str, company: str, recor
             "include_matches": ", ".join(include_matches),
             "exclude_matches": ", ".join(exclude_matches),
             "hard_excludes": ", ".join(hard_excludes),
-            "note": f"score={meta['score']} matched_keyword={meta['keyword']} internship={'; '.join(f'{h['field']}:{h['term']}' for h in meta.get('internship_hits', [])) if meta.get('internship_hits') else ''}",
+            "note": "score={} matched_keyword={} internship={}".format(
+                meta["score"],
+                meta["keyword"],
+                "; ".join(f"{h['field']}:{h['term']}" for h in meta.get("internship_hits", [])) if meta.get("internship_hits") else "",
+            ),
         })
     with csv_path.open("a", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=DEBUG_FIELDS)
