@@ -354,8 +354,18 @@ def extract(source: dict, html: str, parser: str):
             continue
 
         context = anchor_context(anchor)
-        if obviously_closed(f"{title} {context}"):
+        combined_context = f"{title} {context}"
+        if obviously_closed(combined_context):
             continue
+
+        # Public research-institute boards often retain years of closed notices.
+        # When a card exposes an explicit application period, reject it only when
+        # at least two dates are visible and the latest date is already past.
+        if source["company"] in {"KETI", "KIMS", "KIST", "KRISS", "ETRI", "NNFC", "KBSI"}:
+            period_dates = parse_dates(combined_context)
+            if len(period_dates) >= 2 and max(period_dates) < date.today():
+                continue
+
         if not url_allowed(source, url, title, context):
             continue
 
@@ -444,7 +454,8 @@ def workday_spec(source: dict):
 
     if "myworkdaysite.com" in host and len(segments) >= 3 and segments[0].lower() == "recruiting":
         tenant, site = segments[1], segments[2]
-        api_host = host.replace("myworkdaysite.com", "myworkdayjobs.com")
+        api_root = host.replace("myworkdaysite.com", "myworkdayjobs.com")
+        api_host = f"{tenant}.{api_root}"
         ui_base = f"https://{api_host}/en-US/{site}"
         return tenant, site, api_host, ui_base
 
@@ -682,8 +693,15 @@ def collect_one(fetcher: Fetcher, source: dict):
     request_error = ""
     request_items = []
     browser_items = []
+    adapter_items = []
     request_loaded = False
     browser_loaded = False
+
+    adapter_error = ""
+    try:
+        adapter_items, adapter_error = collect_platform_adapter(fetcher, source)
+    except Exception as exc:
+        adapter_error = f"adapter {type(exc).__name__}: {exc}"[:1500]
 
     try:
         html = fetcher.request_html(source["url"])
@@ -694,6 +712,8 @@ def collect_one(fetcher: Fetcher, source: dict):
         request_error = f"{type(exc).__name__}: {exc}"
 
     browser_error = ""
+    # The browser remains an independent fallback even when an API adapter exists.
+    # This helps detect platform changes where one path silently becomes incomplete.
     if source_needs_browser(source, len(request_items)):
         try:
             html = fetcher.browser_html(source["url"])
@@ -703,21 +723,28 @@ def collect_one(fetcher: Fetcher, source: dict):
         except Exception as exc:
             browser_error = f"{type(exc).__name__}: {exc}"
 
-    final_items = merge_candidates(request_items, browser_items)
-    parser = (
-        "requests+playwright" if request_loaded and browser_loaded
-        else "playwright" if browser_loaded
-        else "requests" if request_loaded
-        else ""
-    )
-    success = request_loaded or browser_loaded
-    error = "; ".join(x for x in (request_error, browser_error) if x)[:1500]
+    final_items = merge_candidates(adapter_items, request_items, browser_items)
+    parsers = []
+    if adapter_items:
+        parsers.append("adapter")
+    if request_loaded:
+        parsers.append("requests")
+    if browser_loaded:
+        parsers.append("playwright")
+    parser = "+".join(parsers)
+
+    success = bool(adapter_items) or request_loaded or browser_loaded
+    error = "; ".join(
+        x for x in (adapter_error, request_error, browser_error) if x
+    )[:2000]
+
     return final_items, {
         "company": source["company"],
         "source_type": source["source_type"],
         "url": source["url"],
         "success": success,
         "parser": parser,
+        "adapter_candidate_count": len(adapter_items),
         "request_candidate_count": len(request_items),
         "browser_candidate_count": len(browser_items),
         "candidate_count": len(final_items),
@@ -726,7 +753,7 @@ def collect_one(fetcher: Fetcher, source: dict):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.1")
+    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.2")
     parser.add_argument("--company", default="", help="Optional company substring for manual debug")
     args = parser.parse_args()
 
@@ -744,7 +771,8 @@ def main():
             items, status = collect_one(fetcher, source)
             statuses.append(status)
             print(
-                f"  requests={status['request_candidate_count']} "
+                f"  adapter={status['adapter_candidate_count']} "
+                f"requests={status['request_candidate_count']} "
                 f"browser={status['browser_candidate_count']} final={status['candidate_count']} "
                 f"parser={status['parser'] or 'none'}",
                 flush=True,
