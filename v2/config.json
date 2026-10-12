@@ -323,7 +323,7 @@
     {
       "company": "KBSI",
       "source_type": "공식-기관 채용공고",
-      "url": "https://www.kbsi.re.kr/board/list?boardId=BOARD00086&menuId=MENU002051102000000",
+      "url": "https://www.kbsi.re.kr/board?boardId=BOARD00086&menuId=MENU002051102000000&siteId=null",
       "priority": 1
     },
     {
