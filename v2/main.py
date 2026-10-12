@@ -381,9 +381,12 @@ def collect_one(fetcher: Fetcher, source: dict):
     request_error = ""
     request_items = []
     browser_items = []
+    request_loaded = False
+    browser_loaded = False
 
     try:
         html = fetcher.request_html(source["url"])
+        request_loaded = True
         if html:
             request_items = extract(source, html, "requests")
     except Exception as exc:
@@ -393,6 +396,7 @@ def collect_one(fetcher: Fetcher, source: dict):
     if source_needs_browser(source, len(request_items)):
         try:
             html = fetcher.browser_html(source["url"])
+            browser_loaded = True
             if html:
                 browser_items = extract(source, html, "playwright")
         except Exception as exc:
@@ -400,12 +404,12 @@ def collect_one(fetcher: Fetcher, source: dict):
 
     final_items = merge_candidates(request_items, browser_items)
     parser = (
-        "requests+playwright" if request_items and browser_items
-        else "playwright" if browser_items
-        else "requests" if request_items
+        "requests+playwright" if request_loaded and browser_loaded
+        else "playwright" if browser_loaded
+        else "requests" if request_loaded
         else ""
     )
-    success = bool(request_items or browser_items or (not request_error and not browser_error))
+    success = request_loaded or browser_loaded
     error = "; ".join(x for x in (request_error, browser_error) if x)[:1500]
     return final_items, {
         "company": source["company"],
