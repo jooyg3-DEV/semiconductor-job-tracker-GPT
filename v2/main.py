@@ -611,81 +611,103 @@ def lam_heading(soup, fallback: str) -> str:
 
 
 def collect_lam_korea(fetcher, source: dict):
-    if source["company"] != "Lam Research Korea" or "글로벌" not in source["source_type"]:
+    if source["company"] != "Lam Research Korea":
         return [], ""
 
-    listing_links = {}
-    errors = []
-    base = "https://careers.lamresearch.com/careers"
-
-    for term in LAM_LOCATION_TERMS:
-        consecutive_empty = 0
-        for start in (0, 10, 20, 30, 40):
-            url = f"{base}?filter_rmk_location={quote_plus(term)}&sort_by=timestamp&start={start}"
-            try:
-                response = fetcher.session.get(url, timeout=20)
-                response.raise_for_status()
-                soup = BeautifulSoup(response.text, "html.parser")
-                found_here = 0
-                for anchor in soup.find_all("a", href=True):
-                    href = clean(anchor.get("href"))
-                    full = canonical(urljoin(base, href))
-                    path = urlparse(full).path.lower()
-                    if "/careers/job/" not in path and not (
-                        "/careers/apply" in path and "pid=" in full
-                    ):
-                        continue
-                    title = clean(anchor.get_text(" ", strip=True)) or clean(anchor.get("title"))
-                    if not title or title.lower() in IGNORE_TEXT:
-                        continue
-                    context = anchor_context(anchor, max_levels=5, max_chars=1600)
-                    combined = f"{title} {context} {full}"
-                    if not korea_signal(combined) and not re.search(r"\bKR[-\s]", combined, re.I):
-                        continue
-                    listing_links.setdefault(full, title)
-                    found_here += 1
-
-                if found_here == 0:
-                    consecutive_empty += 1
-                else:
-                    consecutive_empty = 0
-                if consecutive_empty >= 2:
-                    break
-            except Exception as exc:
-                errors.append(f"{term}:{start}:{type(exc).__name__}")
-                break
+    host = urlparse(source["url"]).netloc.lower()
+    if "opportunities.lamresearch.com" not in host:
+        return [], ""
 
     results = {}
-    for url, fallback_title in list(listing_links.items())[:100]:
+    errors = []
+    base = "https://opportunities.lamresearch.com/go/Search/8797500"
+
+    # Search pages are sorted by reference date, so the first several hundred rows
+    # cover the currently active Korea requisitions while remaining inexpensive.
+    for start in range(0, 500, 25):
+        if start == 0:
+            url = f"{base}/?q=&sortColumn=referencedate&sortDirection=desc"
+        else:
+            url = f"{base}/{start}/?q=&sortColumn=referencedate&sortDirection=desc"
         try:
             response = fetcher.session.get(url, timeout=20)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, "html.parser")
-            text_value = clean(soup.get_text(" ", strip=True))
-            if "no longer accepting applications" in text_value.lower():
-                continue
-            if not korea_signal(text_value) and not re.search(r"\bKR[-\s]", text_value, re.I):
-                continue
+            found_korea = 0
 
-            match = re.search(r"Requisition ID\s*([0-9]{5,7})\b", text_value, re.I)
-            jid = match.group(1) if match else extract_job_id(url, text_value)
-            title = lam_heading(soup, fallback_title)
-            loc_match = re.search(
-                r"Work Location\s+(.{1,120}?)(?:Work Country|The group|The impact|Job description)",
-                text_value,
-                re.I,
-            )
-            location = clean(loc_match.group(1)) if loc_match else korea_signal(text_value)
-            item = build_candidate(
-                source, title, url, jid, location, "lam-korea-search", 0.98
-            )
-            if item:
-                results[item["job_key"]] = item
+            for anchor in soup.find_all("a", href=True):
+                href = clean(anchor.get("href"))
+                full = canonical(urljoin(url, href))
+                if "/job/" not in urlparse(full).path.lower():
+                    continue
+
+                title = clean(anchor.get_text(" ", strip=True)) or clean(anchor.get("title"))
+                if not title or title.lower() in IGNORE_TEXT:
+                    continue
+
+                context = anchor_context(anchor, max_levels=4, max_chars=1400)
+                combined = f"{title} {context} {full}"
+                if (
+                    "-kr-" not in urlparse(full).path.lower()
+                    and not re.search(r"\bKR[-\s]", combined, re.I)
+                    and not korea_signal(combined)
+                ):
+                    continue
+
+                found_korea += 1
+                try:
+                    detail = fetcher.session.get(full, timeout=20)
+                    detail.raise_for_status()
+                    detail_soup = BeautifulSoup(detail.text, "html.parser")
+                    detail_text = clean(detail_soup.get_text(" ", strip=True))
+                    if "no longer accepting applications" in detail_text.lower():
+                        continue
+
+                    req_match = re.search(r"Req ID:\s*([0-9]{5,7})\b", detail_text, re.I)
+                    if not req_match:
+                        req_match = re.search(r"Requisition ID\s*([0-9]{5,7})\b", detail_text, re.I)
+                    jid = req_match.group(1) if req_match else extract_job_id(full, detail_text)
+
+                    title_value = lam_heading(detail_soup, title)
+                    loc_match = re.search(
+                        r"Location:\s*(.{1,140}?)(?:Req ID:|Worker Category:|The group|The impact|Job description)",
+                        detail_text,
+                        re.I,
+                    )
+                    location = clean(loc_match.group(1)) if loc_match else korea_signal(detail_text)
+                    item = build_candidate(
+                        source,
+                        title_value,
+                        full,
+                        jid,
+                        location,
+                        "lam-opportunities",
+                        0.99,
+                    )
+                    if item:
+                        results[item["job_key"]] = item
+                except Exception as exc:
+                    errors.append(f"detail:{type(exc).__name__}")
+            if start >= 100 and found_korea == 0 and results:
+                # Once current Korea jobs have been found, two pages with no Korea
+                # signal are sufficient to stop an unnecessarily long global scan.
+                next_start = start + 25
+                try:
+                    probe = fetcher.session.get(
+                        f"{base}/{next_start}/?q=&sortColumn=referencedate&sortDirection=desc",
+                        timeout=20,
+                    )
+                    probe.raise_for_status()
+                    if "KR-" not in probe.text and "Korea" not in probe.text:
+                        break
+                except Exception:
+                    pass
         except Exception as exc:
-            errors.append(f"detail:{type(exc).__name__}")
+            errors.append(f"page:{start}:{type(exc).__name__}")
+            if start == 0:
+                break
 
-    error = ",".join(errors[:8])
-    return list(results.values()), error
+    return list(results.values()), "; ".join(errors[:8])[:1200]
 
 
 def collect_platform_adapter(fetcher, source: dict):
