@@ -62,6 +62,16 @@ BROWSER_MORE_TEXT = (
     "더보기", "더 보기", "채용공고 더보기", "공고 더보기"
 )
 
+COVERAGE_MINIMUMS = {
+    "KLA Korea": 5,
+    "Lam Research Korea": 5,
+    "ASM Korea": 3,
+    "ASML Korea": 1,
+    "KETI": 1,
+    "KIMS": 1,
+    "KBSI": 1,
+}
+
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -936,7 +946,23 @@ def collect_one(fetcher: Fetcher, source: dict):
         except Exception as exc:
             browser_error = f"{type(exc).__name__}: {exc}"
 
-    final_items = merge_candidates(adapter_items, request_items, browser_items)
+    authoritative_adapter = False
+    if source["company"] == "ASM Korea" and adapter_items:
+        authoritative_adapter = True
+    if (
+        source["company"] == "Lam Research Korea"
+        and "opportunities.lamresearch.com" in urlparse(source["url"]).netloc.lower()
+        and adapter_items
+    ):
+        authoritative_adapter = True
+    if source["company"] in {"KBSI", "NNFC"} and adapter_items:
+        authoritative_adapter = True
+
+    if authoritative_adapter:
+        final_items = adapter_items
+    else:
+        final_items = merge_candidates(adapter_items, request_items, browser_items)
+
     parsers = []
     if adapter_items:
         parsers.append("adapter")
@@ -1046,6 +1072,26 @@ def main():
                 "source_type": "",
                 "url": "",
                 "detail": f"Candidate count dropped from {old_count} to {new_count}.",
+            })
+
+    for company, minimum in COVERAGE_MINIMUMS.items():
+        if company not in companies:
+            continue
+        current = counts.get(company, 0)
+        if current < minimum:
+            signals.append({
+                "company": company,
+                "signal": "COVERAGE_SUSPECT",
+                "severity": "HIGH" if company in {
+                    "KLA Korea", "Lam Research Korea", "ASM Korea", "ASML Korea"
+                } else "MEDIUM",
+                "source_type": "",
+                "url": "",
+                "detail": (
+                    f"Only {current} candidates were enumerated; "
+                    f"expected at least {minimum} for blind-spot coverage. "
+                    "Treat this as incomplete collection, not as zero openings."
+                ),
             })
 
     finished_at = now_iso()
