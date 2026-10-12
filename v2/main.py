@@ -487,55 +487,80 @@ def collect_workday_api(fetcher, source: dict):
     tenant, site, api_host, ui_base = spec
     endpoint = f"https://{api_host}/wday/cxs/{tenant}/{site}/jobs"
     results = {}
-    offset = 0
-    limit = 20
-    total = None
+    errors = []
 
-    try:
-        while offset < 500:
-            response = fetcher.session.post(
-                endpoint,
-                json={
-                    "appliedFacets": {},
-                    "limit": limit,
-                    "offset": offset,
-                    "searchText": "",
-                },
-                timeout=20,
-                headers={"Content-Type": "application/json"},
-            )
-            response.raise_for_status()
-            payload = response.json()
-            postings = payload.get("jobPostings") or []
-            if total is None:
-                total = int(payload.get("total") or 0)
+    search_terms = [""]
+    if source["company"] == "KLA Korea":
+        search_terms = [
+            "",
+            "Korea",
+            "Hwaseong",
+            "Icheon",
+            "Applications",
+            "Application",
+            "Regional Development",
+            "Customer Engagement",
+            "Product Development",
+            "Process",
+            "System",
+            "Engineer",
+        ]
+    elif source["company"] == "Onto Innovation Korea":
+        search_terms = ["", "Korea", "Hwasung", "Hwaseong", "Applications", "Field Service"]
 
-            for posting in postings:
-                title = clean(posting.get("title"))
-                external = clean(posting.get("externalPath"))
-                location = clean(posting.get("locationsText"))
-                bullets = " ".join(clean(x) for x in (posting.get("bulletFields") or []))
-                combined = f"{title} {location} {bullets} {external}"
-                if source["company"] in {"KLA Korea", "Onto Innovation Korea"} and not korea_signal(combined):
-                    continue
-                if not external:
-                    continue
-                url = canonical(ui_base.rstrip("/") + "/" + external.lstrip("/"))
-                jid = extract_job_id(url, combined)
-                item = build_candidate(
-                    source, title, url, jid, location or korea_signal(combined),
-                    "workday-api", 0.99,
+    for search_text in search_terms:
+        offset = 0
+        total = None
+        try:
+            while offset < 400:
+                response = fetcher.session.post(
+                    endpoint,
+                    json={
+                        "appliedFacets": {},
+                        "limit": 20,
+                        "offset": offset,
+                        "searchText": search_text,
+                    },
+                    timeout=20,
+                    headers={"Content-Type": "application/json"},
                 )
-                if item:
-                    results[item["job_key"]] = item
+                response.raise_for_status()
+                payload = response.json()
+                postings = payload.get("jobPostings") or []
+                if total is None:
+                    total = int(payload.get("total") or 0)
 
-            offset += len(postings)
-            if not postings or len(postings) < limit or (total and offset >= total):
-                break
+                for posting in postings:
+                    title = clean(posting.get("title"))
+                    external = clean(posting.get("externalPath"))
+                    location = clean(posting.get("locationsText"))
+                    bullets = " ".join(clean(x) for x in (posting.get("bulletFields") or []))
+                    combined = f"{title} {location} {bullets} {external}"
+                    if source["company"] in {"KLA Korea", "Onto Innovation Korea"} and not korea_signal(combined):
+                        continue
+                    if not external:
+                        continue
+                    url = canonical(ui_base.rstrip("/") + "/" + external.lstrip("/"))
+                    jid = extract_job_id(url, combined)
+                    item = build_candidate(
+                        source,
+                        title,
+                        url,
+                        jid,
+                        location or korea_signal(combined),
+                        "workday-api",
+                        0.99,
+                    )
+                    if item:
+                        results[item["job_key"]] = item
 
-        return list(results.values()), ""
-    except Exception as exc:
-        return [], f"workday-api {type(exc).__name__}: {exc}"[:1000]
+                offset += len(postings)
+                if not postings or len(postings) < 20 or (total and offset >= total):
+                    break
+        except Exception as exc:
+            errors.append(f"{search_text or 'ALL'}:{type(exc).__name__}:{exc}")
+
+    return list(results.values()), "; ".join(errors[:6])[:1200]
 
 
 def collect_asm_greenhouse(fetcher, source: dict):
