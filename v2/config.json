@@ -154,15 +154,21 @@
     },
     {
       "company": "Lam Research Korea",
+      "source_type": "공식-Korea Search",
+      "url": "https://opportunities.lamresearch.com/go/Search/8797500/",
+      "priority": 1
+    },
+    {
+      "company": "Lam Research Korea",
       "source_type": "공식-국내",
       "url": "https://lamresearch-careers.com/",
-      "priority": 1
+      "priority": 2
     },
     {
       "company": "Lam Research Korea",
       "source_type": "공식-글로벌",
       "url": "https://careers.lamresearch.com/careers",
-      "priority": 2
+      "priority": 3
     },
     {
       "company": "Applied Materials Korea",
