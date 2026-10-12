@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-VERSION = "2.2"
+VERSION = "2.3"
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config.json"
 DATA = ROOT / "data"
@@ -230,7 +230,23 @@ def url_allowed(source: dict, url: str, title: str, context: str) -> bool:
         base = "/en/careers/find-your-job/"
         if not path.startswith(base) or path.rstrip("/") == base.rstrip("/"):
             return False
-        return bool(re.search(r"-j\d{8}$", path, re.I))
+        if not re.search(r"-j\d{8}$", path, re.I):
+            return False
+        return bool(korea_signal(combined))
+
+    if company == "Lam Research Korea":
+        lower_path = path.lower()
+        if "opportunities.lamresearch.com" in p.netloc.lower():
+            return "/job/" in lower_path and (
+                "-kr-" in lower_path or bool(re.search(r"\bKR[-\s]", combined, re.I))
+            )
+        if "lamresearch.com" in p.netloc.lower():
+            return (
+                "/careers/job/" in lower_path or "/careers/apply" in lower_path
+            ) and (
+                bool(korea_signal(combined)) or bool(re.search(r"\bKR[-\s]", combined, re.I))
+            )
+        return False
 
     if company == "SK hynix":
         if "talent.skhynix.com" in p.netloc.lower():
@@ -360,18 +376,13 @@ def extract(source: dict, html: str, parser: str):
         if not title or len(title) < 3 or title.lower() in IGNORE_TEXT:
             continue
 
-        context = anchor_context(anchor)
+        if source["company"] in {"ASML Korea", "Lam Research Korea", "SK hynix"}:
+            context = anchor_context(anchor, max_levels=2, max_chars=650)
+        else:
+            context = anchor_context(anchor)
         combined_context = f"{title} {context}"
         if obviously_closed(combined_context):
             continue
-
-        # Public research-institute boards often retain years of closed notices.
-        # When a card exposes an explicit application period, reject it only when
-        # at least two dates are visible and the latest date is already past.
-        if source["company"] in {"KETI", "KIMS", "KIST", "KRISS", "ETRI", "NNFC", "KBSI"}:
-            period_dates = parse_dates(combined_context)
-            if len(period_dates) >= 2 and max(period_dates) < date.today():
-                continue
 
         if not url_allowed(source, url, title, context):
             continue
@@ -761,7 +772,7 @@ def collect_one(fetcher: Fetcher, source: dict):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.2")
+    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.3")
     parser.add_argument("--company", default="", help="Optional company substring for manual debug")
     args = parser.parse_args()
 
