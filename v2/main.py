@@ -752,6 +752,7 @@ def collect_one(fetcher: Fetcher, source: dict):
         "success": success,
         "parser": parser,
         "adapter_candidate_count": len(adapter_items),
+        "adapter_error": adapter_error,
         "request_candidate_count": len(request_items),
         "browser_candidate_count": len(browser_items),
         "candidate_count": len(final_items),
@@ -796,6 +797,16 @@ def main():
 
     signals = []
     for status in statuses:
+        if status.get("adapter_error"):
+            signals.append({
+                "company": status["company"],
+                "signal": "ADAPTER_ERROR",
+                "severity": "MEDIUM",
+                "source_type": status["source_type"],
+                "url": status["url"],
+                "detail": status["adapter_error"],
+            })
+
         if not status["success"]:
             signals.append({
                 "company": status["company"],
