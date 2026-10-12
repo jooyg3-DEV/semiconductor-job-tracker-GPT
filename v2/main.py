@@ -626,9 +626,9 @@ def collect_lam_korea(fetcher, source: dict):
     # cover the currently active Korea requisitions while remaining inexpensive.
     for start in range(0, 500, 25):
         if start == 0:
-            url = f"{base}/?q=&sortColumn=referencedate&sortDirection=desc"
+            url = f"{base}/?q=KR&sortColumn=referencedate&sortDirection=desc"
         else:
-            url = f"{base}/{start}/?q=&sortColumn=referencedate&sortDirection=desc"
+            url = f"{base}/{start}/?q=KR&sortColumn=referencedate&sortDirection=desc"
         try:
             response = fetcher.session.get(url, timeout=20)
             response.raise_for_status()
@@ -694,7 +694,7 @@ def collect_lam_korea(fetcher, source: dict):
                 next_start = start + 25
                 try:
                     probe = fetcher.session.get(
-                        f"{base}/{next_start}/?q=&sortColumn=referencedate&sortDirection=desc",
+                        f"{base}/{next_start}/?q=KR&sortColumn=referencedate&sortDirection=desc",
                         timeout=20,
                     )
                     probe.raise_for_status()
