@@ -710,6 +710,142 @@ def collect_lam_korea(fetcher, source: dict):
     return list(results.values()), "; ".join(errors[:8])[:1200]
 
 
+def detail_heading(soup, fallback: str = "") -> str:
+    for key in ("og:title", "twitter:title"):
+        tag = soup.find("meta", attrs={"property": key}) or soup.find("meta", attrs={"name": key})
+        if tag and clean(tag.get("content")):
+            value = clean(tag.get("content"))
+            if "채용공고 게시판" not in value:
+                return value
+
+    for tag in soup.find_all(["h1", "h2", "h3", "h4", "strong"]):
+        value = clean(tag.get_text(" ", strip=True))
+        if 6 <= len(value) <= 250 and any(token in value for token in ("채용", "모집", "Recruit")):
+            if value not in {"채용공고", "채용공고 게시판"}:
+                return value
+
+    text_value = clean(soup.get_text(" ", strip=True))
+    match = re.search(
+        r"(20\d{2}년.{0,120}?(?:채용|모집).{0,80})",
+        text_value,
+        re.I,
+    )
+    return clean(match.group(1)) if match else fallback
+
+
+def collect_kbsi_board(fetcher, source: dict):
+    if source["company"] != "KBSI":
+        return [], ""
+
+    errors = []
+    results = {}
+    html = ""
+    try:
+        html = fetcher.request_html(source["url"])
+    except Exception as exc:
+        errors.append(f"list-requests:{type(exc).__name__}")
+
+    if not re.search(r"titleId=[A-Za-z0-9]+", html):
+        try:
+            html = fetcher.browser_html(source["url"])
+        except Exception as exc:
+            errors.append(f"list-browser:{type(exc).__name__}")
+
+    title_ids = []
+    for title_id in re.findall(r"titleId=([A-Za-z0-9]+)", html):
+        if title_id not in title_ids:
+            title_ids.append(title_id)
+
+    base = "https://www.kbsi.re.kr/board/view"
+    for title_id in title_ids[:40]:
+        url = (
+            f"{base}?boardId=BOARD00086&menuId=MENU002051102000000"
+            f"&pageNum=1&rowCnt=10&schText=&schType=0&titleId={title_id}"
+        )
+        try:
+            response = fetcher.session.get(url, timeout=20)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "html.parser")
+            title = detail_heading(soup, "")
+            if not title:
+                continue
+            item = build_candidate(
+                source,
+                title,
+                url,
+                "",
+                "",
+                "kbsi-board",
+                0.98,
+            )
+            if item:
+                results[item["job_key"]] = item
+        except Exception as exc:
+            errors.append(f"detail:{title_id}:{type(exc).__name__}")
+
+    return list(results.values()), "; ".join(errors[:8])[:1200]
+
+
+def collect_nnfc_board(fetcher, source: dict):
+    if source["company"] != "NNFC":
+        return [], ""
+
+    errors = []
+    results = {}
+    html = ""
+    try:
+        html = fetcher.request_html(source["url"])
+    except Exception as exc:
+        errors.append(f"list-requests:{type(exc).__name__}")
+
+    if not re.search(r"/B[0-9A-Za-z]+\.do", html):
+        try:
+            html = fetcher.browser_html(source["url"])
+        except Exception as exc:
+            errors.append(f"list-browser:{type(exc).__name__}")
+
+    links = []
+    for href in re.findall(r"""(?:href|location\.href)\s*=\s*["']([^"']*?/B[0-9A-Za-z]+\.do[^"']*)["']""", html, re.I):
+        full = canonical(urljoin(source["url"], href.replace("&amp;", "&")))
+        if full and full not in links:
+            links.append(full)
+
+    # Some NNFC templates expose only the B-prefixed slug in JavaScript.
+    for slug in re.findall(r"(B[0-9A-Za-z]{8,}\.do)", html):
+        full = canonical(
+            urljoin(
+                source["url"],
+                f"/bbs/BBSMSTR_000000000004/{slug}",
+            )
+        )
+        if full and full not in links:
+            links.append(full)
+
+    for url in links[:40]:
+        try:
+            response = fetcher.session.get(url, timeout=20)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "html.parser")
+            title = detail_heading(soup, "")
+            if not title:
+                continue
+            item = build_candidate(
+                source,
+                title,
+                url,
+                "",
+                "",
+                "nnfc-board",
+                0.98,
+            )
+            if item:
+                results[item["job_key"]] = item
+        except Exception as exc:
+            errors.append(f"detail:{type(exc).__name__}")
+
+    return list(results.values()), "; ".join(errors[:8])[:1200]
+
+
 def collect_platform_adapter(fetcher, source: dict):
     groups = []
     errors = []
@@ -731,6 +867,18 @@ def collect_platform_adapter(fetcher, source: dict):
         groups.append(lam_items)
     if lam_error:
         errors.append(lam_error)
+
+    kbsi_items, kbsi_error = collect_kbsi_board(fetcher, source)
+    if kbsi_items:
+        groups.append(kbsi_items)
+    if kbsi_error:
+        errors.append(kbsi_error)
+
+    nnfc_items, nnfc_error = collect_nnfc_board(fetcher, source)
+    if nnfc_items:
+        groups.append(nnfc_items)
+    if nnfc_error:
+        errors.append(nnfc_error)
 
     return merge_candidates(*groups), "; ".join(errors)[:1500]
 
