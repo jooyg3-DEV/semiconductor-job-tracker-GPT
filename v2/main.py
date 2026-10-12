@@ -1,58 +1,51 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import hashlib
 import json
 import os
 import re
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urljoin, urlparse, urlunparse
 
-import gspread
 import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-SHEET_ID = os.environ["GOOGLE_SHEET_ID"]
-SERVICE_ACCOUNT_JSON = os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"]
-OUT = Path("debug_outputs")
-SNAPSHOT = "GITHUB_SNAPSHOT"
-GAPS = "GITHUB_GAPS"
-RUNLOG = "GITHUB_RUN_LOG"
+ROOT = Path(__file__).resolve().parent
+CONFIG = ROOT / "config.json"
+DATA = ROOT / "data"
+ARTIFACTS = Path("debug_outputs")
 
-DETAIL_TOKENS = ("/job/", "/jobs/", "/career/", "/careers/", "/recruit/", "/recruitment/",
-                 "/position/", "/vacanc", "/opening", "/notification/", "/view", "/detail", "/apply/")
-KOREA = ("korea", "south korea", "대한민국", "한국", "seoul", "서울", "hwaseong", "화성",
-         "icheon", "이천", "yongin", "용인", "pyeongtaek", "평택", "suwon", "수원",
-         "cheongju", "청주", "daejeon", "대전", "dongtan", "동탄")
+DETAIL_TOKENS = (
+    "/job/", "/jobs/", "/career/", "/careers/", "/recruit/", "/recruitment/",
+    "/position/", "/vacanc", "/opening", "/notification/", "/view", "/detail", "/apply/"
+)
 JOB_WORDS = re.compile(
     r"(engineer|scientist|research|process|application|field|device|metrology|yield|equipment|system|"
     r"연구|개발|공정|소자|장비|채용|모집)", re.I
 )
-IGNORE_TEXT = {"home", "careers", "career", "jobs", "채용", "채용공고", "지원하기", "apply",
-               "login", "로그인", "privacy", "terms", "about", "faq", "news", "contact"}
+KOREA = (
+    "korea", "south korea", "대한민국", "한국", "seoul", "서울", "hwaseong", "화성",
+    "icheon", "이천", "yongin", "용인", "pyeongtaek", "평택", "suwon", "수원",
+    "cheongju", "청주", "daejeon", "대전", "dongtan", "동탄"
+)
+IGNORE = {
+    "home", "careers", "career", "jobs", "채용", "채용공고", "지원하기", "apply",
+    "login", "로그인", "privacy", "terms", "about", "faq", "news", "contact"
+}
 
 
-@dataclass(frozen=True)
-class Source:
-    company: str
-    source_type: str
-    url: str
-    priority: int
-
-
-def now_iso():
+def now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
-def clean(value):
+def clean(value: object) -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip()
 
 
-def canonical(url):
+def canonical(url: str) -> str:
     if not url:
         return ""
     p = urlparse(url)
@@ -60,8 +53,8 @@ def canonical(url):
         return ""
     keep = []
     for key, value in parse_qsl(p.query, keep_blank_values=True):
-        k = key.lower()
-        if k.startswith("utm_") or k in {"source", "src", "ref", "referrer", "gh_src", "_ga", "pvs"}:
+        kl = key.lower()
+        if kl.startswith("utm_") or kl in {"source", "src", "ref", "referrer", "gh_src", "_ga", "pvs"}:
             continue
         keep.append((key, value))
     path = re.sub(r"/{2,}", "/", p.path or "/")
@@ -70,40 +63,41 @@ def canonical(url):
     return urlunparse((p.scheme.lower(), p.netloc.lower(), path, "", urlencode(sorted(keep)), ""))
 
 
-def job_id(url, text=""):
+def extract_job_id(url: str, text: str = "") -> str:
     p = urlparse(url)
     q = {k.lower(): v for k, v in parse_qsl(p.query)}
-    for key in ("gh_jid", "jobid", "job_id", "reqid", "req_id", "requisitionid",
-                "postingid", "wantedauthno", "wr_id", "seq", "idx", "titleid"):
+    for key in (
+        "gh_jid", "jobid", "job_id", "reqid", "req_id", "requisitionid",
+        "postingid", "wantedauthno", "wr_id", "seq", "idx", "titleid"
+    ):
         if clean(q.get(key)):
             return clean(q[key])
     target = f"{p.path} {text}"
-    for pattern in (r"\bJ-\d{6,}\b", r"\bR-\d{3,}\b", r"\bRC\d{8,}\b",
-                    r"(?:/job/|/jobs/|job-)(\d{6,12})(?:\b|/|-)",
-                    r"(?:requisition|req)[-_ /:]?(\d{5,12})\b"):
-        m = re.search(pattern, target, re.I)
-        if m:
-            return m.group(1) if m.lastindex else m.group(0)
+    for pattern in (
+        r"\bJ-\d{6,}\b", r"\bR-\d{3,}\b", r"\bRC\d{8,}\b",
+        r"(?:/job/|/jobs/|job-)(\d{6,12})(?:\b|/|-)",
+        r"(?:requisition|req)[-_ /:]?(\d{5,12})\b",
+    ):
+        match = re.search(pattern, target, re.I)
+        if match:
+            return match.group(1) if match.lastindex else match.group(0)
     return ""
 
 
-def korea_signal(text):
+def korea_signal(text: str) -> str:
     lowered = clean(text).lower()
-    return next((x for x in KOREA if x in lowered), "")
+    return next((signal for signal in KOREA if signal in lowered), "")
 
 
-class Store:
-    def __init__(self):
-        info = json.loads(SERVICE_ACCOUNT_JSON)
-        self.book = gspread.service_account_from_dict(info).open_by_key(SHEET_ID)
-
-    def rows(self, name):
-        return self.book.worksheet(name).get_all_records(default_blank="")
-
-    def append(self, name, rows):
-        if rows:
-            self.book.worksheet(name).append_rows(rows, value_input_option="USER_ENTERED",
-                                                  insert_data_option="INSERT_ROWS", table_range="A1")
+def load_config(company_filter: str = ""):
+    cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
+    companies = [c["name"] for c in cfg["companies"]]
+    if company_filter:
+        companies = [c for c in companies if company_filter.lower() in c.lower()]
+    allowed = set(companies)
+    sources = [s for s in cfg["sources"] if s["company"] in allowed]
+    sources.sort(key=lambda x: (companies.index(x["company"]), x["priority"], x["source_type"]))
+    return cfg, companies, sources
 
 
 class Fetcher:
@@ -113,8 +107,6 @@ class Fetcher:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36",
             "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
         })
-        self.pw = None
-        self.browser = None
 
     def __enter__(self):
         self.pw = sync_playwright().start()
@@ -122,234 +114,235 @@ class Fetcher:
         return self
 
     def __exit__(self, *args):
-        if self.browser:
-            self.browser.close()
-        if self.pw:
-            self.pw.stop()
+        self.browser.close()
+        self.pw.stop()
 
-    def html(self, url):
+    def get(self, url: str):
+        request_error = ""
         try:
-            r = self.session.get(url, timeout=25, allow_redirects=True)
-            r.raise_for_status()
-            body = r.text or ""
+            response = self.session.get(url, timeout=25, allow_redirects=True)
+            response.raise_for_status()
+            body = response.text or ""
             if len(body) >= 3000 and "javascript is required" not in body.lower():
                 return body, "requests"
-        except Exception:
-            pass
+            request_error = f"requests content insufficient: {len(body)} chars"
+        except Exception as exc:
+            request_error = f"requests {type(exc).__name__}: {exc}"
+
         page = self.browser.new_page(viewport={"width": 1440, "height": 1000})
         try:
             page.goto(url, wait_until="domcontentloaded", timeout=45000)
             page.wait_for_timeout(1200)
-            for _ in range(4):
+            for _ in range(5):
                 page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                page.wait_for_timeout(400)
+                page.wait_for_timeout(450)
             return page.content(), "playwright"
+        except Exception as exc:
+            raise RuntimeError(f"{request_error}; playwright {type(exc).__name__}: {exc}") from exc
         finally:
             page.close()
 
 
-def load_sources(store, company_filter=""):
-    companies = [clean(r.get("회사")) for r in store.rows("COMPANIES")
-                 if clean(r.get("감시")).upper() == "Y"]
-    if company_filter:
-        companies = [c for c in companies if company_filter.lower() in c.lower()]
-    allowed = set(companies)
-    sources = []
-    for r in store.rows("SOURCES"):
-        company = clean(r.get("회사"))
-        if company not in allowed or clean(r.get("활성")).upper() != "Y":
-            continue
-        url = clean(r.get("URL"))
-        if not url:
-            continue
-        try:
-            priority = int(r.get("우선순위") or 99)
-        except Exception:
-            priority = 99
-        sources.append(Source(company, clean(r.get("Source Type")), url, priority))
-    sources.sort(key=lambda s: (companies.index(s.company), s.priority, s.source_type))
-    return companies, sources
-
-
-def master_index(store):
-    ids, urls, active = set(), set(), {}
-    for r in store.rows("JOBS_ALL"):
-        jid = clean(r.get("Job ID"))
-        url = canonical(clean(r.get("공식 URL")))
-        aux = canonical(clean(r.get("보조 URL")))
-        if jid:
-            ids.add(jid)
-        if url:
-            urls.add(url)
-        if aux:
-            urls.add(aux)
-        if clean(r.get("공고상태")).lower() == "active":
-            active.setdefault(clean(r.get("회사")), []).append(r)
-    return ids, urls, active
-
-
-def previous_counts(store):
-    counts, latest = {}, {}
-    for r in store.rows(SNAPSHOT):
-        company, run, key = clean(r.get("Company")), clean(r.get("Run ID")), clean(r.get("Job Key"))
-        if not company or not run or not key:
-            continue
-        counts.setdefault((company, run), set()).add(key)
-        latest[company] = max(run, latest.get(company, ""))
-    return {c: len(counts.get((c, run), set())) for c, run in latest.items()}
-
-
-def extract_candidates(source, html, parser):
+def extract(source: dict, html: str, parser: str):
     soup = BeautifulSoup(html, "html.parser")
-    out = {}
-    for a in soup.find_all("a", href=True):
-        url = canonical(urljoin(source.url, clean(a.get("href"))))
-        if not url or url == canonical(source.url):
+    results = {}
+    for anchor in soup.find_all("a", href=True):
+        url = canonical(urljoin(source["url"], clean(anchor.get("href"))))
+        if not url or url == canonical(source["url"]):
             continue
-        title = clean(a.get_text(" ", strip=True)) or clean(a.get("title"))
-        if not title or title.lower() in IGNORE_TEXT or len(title) < 3:
+        title = clean(anchor.get_text(" ", strip=True)) or clean(anchor.get("title"))
+        if not title or len(title) < 3 or title.lower() in IGNORE:
             continue
-        context = clean(a.parent.get_text(" ", strip=True) if a.parent else "")[:500]
-        p = urlparse(url)
-        qkeys = {k.lower() for k, _ in parse_qsl(p.query)}
-        jid = job_id(url, f"{title} {context}")
+        context = clean(anchor.parent.get_text(" ", strip=True) if anchor.parent else "")[:500]
+        jid = extract_job_id(url, f"{title} {context}")
+        parsed = urlparse(url)
+        query_keys = {k.lower() for k, _ in parse_qsl(parsed.query)}
+
         score = 0.0
-        if any(t in p.path.lower() for t in DETAIL_TOKENS):
-            score += 2
-        if qkeys & {"idx", "seq", "jobid", "job_id", "reqid", "req_id", "wr_id", "titleid",
-                    "wantedauthno", "gh_jid", "postingid"}:
+        if any(token in parsed.path.lower() for token in DETAIL_TOKENS):
+            score += 2.0
+        if query_keys & {
+            "idx", "seq", "jobid", "job_id", "reqid", "req_id", "wr_id",
+            "titleid", "wantedauthno", "gh_jid", "postingid"
+        }:
             score += 2.5
         if jid:
             score += 2.5
         if JOB_WORDS.search(title):
-            score += 1
+            score += 1.0
         if re.search(r"\d", url):
-            score += .5
+            score += 0.5
+
         combined = f"{title} {context} {url}"
-        if "글로벌" in source.source_type and not korea_signal(combined):
-            score -= 3
+        if "글로벌" in source["source_type"] and not korea_signal(combined):
+            score -= 3.0
         if score < 2.5:
             continue
-        confidence = round(max(.1, min(.98, .45 + score * .08)), 2)
-        keyseed = jid or hashlib.sha1(url.encode()).hexdigest()[:16]
-        key = f"{source.company}|{keyseed}"
+
+        confidence = round(max(0.1, min(0.98, 0.45 + score * 0.08)), 2)
+        key_seed = jid or hashlib.sha1(url.encode()).hexdigest()[:16]
+        job_key = f"{source['company']}|{key_seed}"
         item = {
-            "company": source.company, "source_type": source.source_type, "source_url": source.url,
-            "priority": source.priority, "job_key": key, "job_id": jid, "title": title[:300],
-            "location": korea_signal(combined), "detail_url": url, "parser": parser,
+            "company": source["company"],
+            "source_type": source["source_type"],
+            "source_url": source["url"],
+            "source_priority": source["priority"],
+            "job_key": job_key,
+            "job_id": jid,
+            "title": title[:300],
+            "location_signal": korea_signal(combined),
+            "detail_url": url,
+            "parser": parser,
             "confidence": confidence,
             "raw_hash": hashlib.sha1(f"{title}|{url}".encode()).hexdigest()[:16],
         }
-        if key not in out or confidence > out[key]["confidence"]:
-            out[key] = item
-    return list(out.values())[:400]
+        if job_key not in results or confidence > results[job_key]["confidence"]:
+            results[job_key] = item
+    return list(results.values())[:500]
 
 
-def csv_out(name, rows, fields):
-    OUT.mkdir(parents=True, exist_ok=True)
-    with (OUT / name).open("w", newline="", encoding="utf-8-sig") as f:
-        w = csv.DictWriter(f, fieldnames=fields)
-        w.writeheader()
-        for row in rows:
-            w.writerow({k: row.get(k, "") for k in fields})
+def previous_snapshot() -> dict[str, int]:
+    path = DATA / "latest_snapshot.json"
+    if not path.exists():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        counts = {}
+        for item in payload.get("candidates", []):
+            counts.setdefault(item["company"], set()).add(item["job_key"])
+        return {company: len(keys) for company, keys in counts.items()}
+    except Exception:
+        return {}
+
+
+def write_json(path: Path, payload: dict):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--company", default="")
-    args = ap.parse_args()
+    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2")
+    parser.add_argument("--company", default="", help="Optional company substring for manual debug")
+    args = parser.parse_args()
 
-    start = now_iso()
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    store = Store()
-    companies, sources = load_sources(store, args.company)
-    known_ids, known_urls, active = master_index(store)
-    prev = previous_counts(store)
+    started_at = now_iso()
+    cfg, companies, sources = load_config(args.company)
+    previous = previous_snapshot()
 
-    merged, status = {}, []
-    with Fetcher() as fetch:
-        for i, source in enumerate(sources, 1):
-            print(f"[{i}/{len(sources)}] {source.company} | {source.source_type}", flush=True)
+    merged = {}
+    statuses = []
+
+    with Fetcher() as fetcher:
+        for index, source in enumerate(sources, 1):
+            print(f"[{index}/{len(sources)}] {source['company']} | {source['source_type']}", flush=True)
             try:
-                html, parser = fetch.html(source.url)
-                items = extract_candidates(source, html, parser)
-                status.append((source, True, parser, len(items), ""))
-                for x in items:
-                    if x["job_key"] not in merged or x["confidence"] > merged[x["job_key"]]["confidence"]:
-                        merged[x["job_key"]] = x
+                html, parser_name = fetcher.get(source["url"])
+                candidates = extract(source, html, parser_name)
+                statuses.append({
+                    "company": source["company"],
+                    "source_type": source["source_type"],
+                    "url": source["url"],
+                    "success": True,
+                    "parser": parser_name,
+                    "candidate_count": len(candidates),
+                    "error": "",
+                })
+                for candidate in candidates:
+                    old = merged.get(candidate["job_key"])
+                    if old is None or candidate["confidence"] > old["confidence"]:
+                        merged[candidate["job_key"]] = candidate
             except Exception as exc:
-                status.append((source, False, "", 0, f"{type(exc).__name__}: {exc}"[:1000]))
+                statuses.append({
+                    "company": source["company"],
+                    "source_type": source["source_type"],
+                    "url": source["url"],
+                    "success": False,
+                    "parser": "",
+                    "candidate_count": 0,
+                    "error": f"{type(exc).__name__}: {exc}"[:1000],
+                })
 
     candidates = sorted(merged.values(), key=lambda x: (x["company"], x["job_key"]))
-    seen = {}
-    gaps = []
-    detected = now_iso()
+    counts = {}
+    for candidate in candidates:
+        counts[candidate["company"]] = counts.get(candidate["company"], 0) + 1
 
-    for x in candidates:
-        seen.setdefault(x["company"], []).append(x)
-        matched = (x["job_id"] and x["job_id"] in known_ids) or x["detail_url"] in known_urls
-        if not matched:
-            gaps.append([run_id, detected, x["company"], "GITHUB_ONLY", x["job_key"], x["job_id"],
-                         x["title"], x["detail_url"], x["source_type"],
-                         "HIGH" if x["confidence"] >= .75 else "MEDIUM",
-                         f"Candidate absent from JOBS_ALL by Job ID/canonical URL; confidence={x['confidence']}"])
-
-    by_company_status = {}
-    errors = 0
-    for source, ok, parser, count, error in status:
-        by_company_status.setdefault(source.company, []).append((ok, count))
-        if not ok:
-            errors += 1
-            gaps.append([run_id, detected, source.company, "SOURCE_ERROR", "", "", "", source.url,
-                         source.source_type, "HIGH", error])
-        elif count == 0:
-            gaps.append([run_id, detected, source.company, "SOURCE_EMPTY", "", "", "", source.url,
-                         source.source_type, "LOW",
-                         "Source loaded but no job-detail candidates were extracted. Not proof of zero openings."])
+    signals = []
+    for status in statuses:
+        if not status["success"]:
+            signals.append({
+                "company": status["company"],
+                "signal": "SOURCE_ERROR",
+                "severity": "HIGH",
+                "source_type": status["source_type"],
+                "url": status["url"],
+                "detail": status["error"],
+            })
+        elif status["candidate_count"] == 0:
+            signals.append({
+                "company": status["company"],
+                "signal": "SOURCE_EMPTY",
+                "severity": "LOW",
+                "source_type": status["source_type"],
+                "url": status["url"],
+                "detail": "Source loaded but no detail candidates were extracted. This is not proof of zero openings.",
+            })
 
     for company in companies:
-        current = seen.get(company, [])
-        old_count = prev.get(company, 0)
-        if old_count >= 5 and len(current) < max(2, old_count // 2):
-            gaps.append([run_id, detected, company, "COUNT_DROP", "", "", "", "", "", "MEDIUM",
-                         f"Candidate count dropped from {old_count} to {len(current)}"])
-        current_ids = {x["job_id"] for x in current if x["job_id"]}
-        current_urls = {x["detail_url"] for x in current}
-        if any(ok and n > 0 for ok, n in by_company_status.get(company, [])):
-            for r in active.get(company, []):
-                jid = clean(r.get("Job ID"))
-                url = canonical(clean(r.get("공식 URL")))
-                if (jid and jid in current_ids) or (url and url in current_urls):
-                    continue
-                gaps.append([run_id, detected, company, "MASTER_ACTIVE_NOT_SEEN",
-                             clean(r.get("Record ID")), jid, clean(r.get("공고명")), url, "", "LOW",
-                             "Do not close automatically. Re-check official status in ChatGPT Job Tracker."])
+        old_count = previous.get(company, 0)
+        new_count = counts.get(company, 0)
+        if old_count >= 5 and new_count < max(2, old_count // 2):
+            signals.append({
+                "company": company,
+                "signal": "COUNT_DROP",
+                "severity": "MEDIUM",
+                "source_type": "",
+                "url": "",
+                "detail": f"Candidate count dropped from {old_count} to {new_count}.",
+            })
 
-    snapshot_rows = [[run_id, detected, x["company"], x["source_type"], x["source_url"], x["priority"],
-                      x["job_key"], x["job_id"], x["title"], x["location"], x["detail_url"], x["parser"],
-                      x["confidence"], x["raw_hash"]] for x in candidates]
-    store.append(SNAPSHOT, snapshot_rows)
-    store.append(GAPS, gaps)
-    store.append(RUNLOG, [[run_id, start, now_iso(), len(companies), len(sources), len(candidates),
-                           len(gaps), errors, os.environ.get("GITHUB_EVENT_NAME", "manual"),
-                           os.environ.get("GITHUB_SHA", ""),
-                           "Blind-spot detector only; master DB and Notion are never changed here."]])
+    finished_at = now_iso()
+    snapshot = {
+        "schema_version": 2,
+        "run_id": run_id,
+        "started_at": started_at,
+        "finished_at": finished_at,
+        "company_filter": args.company,
+        "company_count": len(companies),
+        "source_count": len(sources),
+        "candidate_count": len(candidates),
+        "candidates": candidates,
+    }
+    status_payload = {
+        "schema_version": 2,
+        "run_id": run_id,
+        "generated_at": finished_at,
+        "statuses": statuses,
+        "signals": signals,
+    }
+    run_payload = {
+        "schema_version": 2,
+        "run_id": run_id,
+        "started_at": started_at,
+        "finished_at": finished_at,
+        "company_count": len(companies),
+        "source_count": len(sources),
+        "candidate_count": len(candidates),
+        "signal_count": len(signals),
+        "error_count": sum(1 for s in statuses if not s["success"]),
+        "config_generated_at": cfg.get("generated_at", ""),
+        "github_sha": os.environ.get("GITHUB_SHA", ""),
+        "github_event": os.environ.get("GITHUB_EVENT_NAME", "local"),
+    }
 
-    csv_out("snapshot.csv", candidates,
-            ["company","source_type","source_url","priority","job_key","job_id","title","location",
-             "detail_url","parser","confidence","raw_hash"])
-    csv_out("gaps.csv", [dict(zip(["Run ID","Detected At","Company","Gap Type","Job Key","Job ID","Title",
-                                   "Detail URL","Source Type","Severity","Detail"], r)) for r in gaps],
-            ["Run ID","Detected At","Company","Gap Type","Job Key","Job ID","Title","Detail URL",
-             "Source Type","Severity","Detail"])
+    write_json(DATA / "latest_snapshot.json", snapshot)
+    write_json(DATA / "latest_status.json", status_payload)
+    write_json(DATA / "latest_run.json", run_payload)
+    write_json(ARTIFACTS / "snapshot.json", snapshot)
+    write_json(ARTIFACTS / "status.json", status_payload)
 
-    summary = os.environ.get("GITHUB_STEP_SUMMARY")
-    if summary:
-        with open(summary, "a", encoding="utf-8") as f:
-            f.write(f"## Job Tracker blind-spot v2\n\n- Companies: {len(companies)}\n- Sources: {len(sources)}\n"
-                    f"- Candidates: {len(candidates)}\n- Gaps: {len(gaps)}\n- Source errors: {errors}\n")
-    print(json.dumps({"run_id": run_id, "companies": len(companies), "sources": len(sources),
-                      "candidates": len(candidates), "gaps": len(gaps), "errors": errors}, ensure_ascii=False))
+    print(json.dumps(run_payload, ensure_ascii=False), flush=True)
 
 
 if __name__ == "__main__":
