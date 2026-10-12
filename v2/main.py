@@ -218,6 +218,9 @@ def url_allowed(source: dict, url: str, title: str, context: str) -> bool:
     if company == "KBSI":
         return "/board/view" in path and bool(query.get("titleid"))
 
+    if company == "NNFC":
+        return bool(re.search(r"/B[0-9A-Za-z]+\.do$", p.path))
+
     if company == "ASM Korea":
         if "/open-vacancies/" not in path:
             return False
@@ -282,6 +285,10 @@ def score_link(source: dict, url: str, title: str, context: str, jid: str) -> fl
         score += 1.0
     if source["source_type"].startswith("공식-"):
         score += 0.5
+
+    if source["company"] == "NNFC" and re.search(r"/B[0-9A-Za-z]+\.do$", p.path):
+        score += 3.0
+
     return score
 
 
