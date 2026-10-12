@@ -1,0 +1,390 @@
+{
+  "schema_version": 2,
+  "generated_from": "public job-source configuration",
+  "generated_at": "2026-10-12",
+  "companies": [
+    {
+      "name": "KLA Korea",
+      "priority": "High",
+      "category": "반도체 장비"
+    },
+    {
+      "name": "Lam Research Korea",
+      "priority": "High",
+      "category": "반도체 장비"
+    },
+    {
+      "name": "Applied Materials Korea",
+      "priority": "High",
+      "category": "반도체 장비"
+    },
+    {
+      "name": "ASML Korea",
+      "priority": "High",
+      "category": "반도체 장비"
+    },
+    {
+      "name": "Samsung Electronics DS",
+      "priority": "High",
+      "category": "반도체/메모리"
+    },
+    {
+      "name": "SK hynix",
+      "priority": "High",
+      "category": "반도체/메모리"
+    },
+    {
+      "name": "Samsung Display",
+      "priority": "High",
+      "category": "디스플레이"
+    },
+    {
+      "name": "KIST",
+      "priority": "Medium",
+      "category": "정부출연/연구기관"
+    },
+    {
+      "name": "KRISS",
+      "priority": "Medium",
+      "category": "정부출연/연구기관"
+    },
+    {
+      "name": "ETRI",
+      "priority": "Medium",
+      "category": "정부출연/연구기관"
+    },
+    {
+      "name": "NNFC",
+      "priority": "Medium",
+      "category": "공공 연구기관"
+    },
+    {
+      "name": "Hyundai Mobis",
+      "priority": "Medium",
+      "category": "자동차/전력반도체"
+    },
+    {
+      "name": "LG Electronics",
+      "priority": "Medium",
+      "category": "전자/반도체"
+    },
+    {
+      "name": "Hanwha Systems",
+      "priority": "Medium",
+      "category": "방산/전자"
+    },
+    {
+      "name": "Hanwha Aerospace",
+      "priority": "Medium",
+      "category": "항공/방산"
+    },
+    {
+      "name": "KAI",
+      "priority": "Medium",
+      "category": "항공"
+    },
+    {
+      "name": "ASM Korea",
+      "priority": "High",
+      "category": "반도체 장비"
+    },
+    {
+      "name": "Tokyo Electron Korea",
+      "priority": "High",
+      "category": "반도체 장비"
+    },
+    {
+      "name": "KETI",
+      "priority": "Medium",
+      "category": "연구기관"
+    },
+    {
+      "name": "Tesla Korea",
+      "priority": "High",
+      "category": "반도체/전기전자"
+    },
+    {
+      "name": "Micron",
+      "priority": "High",
+      "category": "반도체/메모리"
+    },
+    {
+      "name": "Onto Innovation Korea",
+      "priority": "Medium",
+      "category": "반도체 장비"
+    },
+    {
+      "name": "DB HiTek",
+      "priority": "Medium",
+      "category": "반도체/파운드리"
+    },
+    {
+      "name": "Magnachip",
+      "priority": "Medium",
+      "category": "반도체"
+    },
+    {
+      "name": "LX Semicon",
+      "priority": "Medium",
+      "category": "반도체/팹리스"
+    },
+    {
+      "name": "KIMS",
+      "priority": "Medium",
+      "category": "정부출연/연구기관"
+    },
+    {
+      "name": "KBSI",
+      "priority": "Medium",
+      "category": "정부출연/연구기관"
+    }
+  ],
+  "sources": [
+    {
+      "company": "KLA Korea",
+      "source_type": "공식-국내",
+      "url": "https://kla.careerlink.kr/jobs",
+      "priority": 1
+    },
+    {
+      "company": "KLA Korea",
+      "source_type": "공식-글로벌",
+      "url": "https://kla.wd1.myworkdayjobs.com/Search",
+      "priority": 2
+    },
+    {
+      "company": "Lam Research Korea",
+      "source_type": "공식-국내",
+      "url": "https://lamresearch-careers.com/",
+      "priority": 1
+    },
+    {
+      "company": "Lam Research Korea",
+      "source_type": "공식-글로벌",
+      "url": "https://careers.lamresearch.com/careers",
+      "priority": 2
+    },
+    {
+      "company": "Applied Materials Korea",
+      "source_type": "공식-국내",
+      "url": "https://appliedkorea.applyin.co.kr/jobs/",
+      "priority": 1
+    },
+    {
+      "company": "Applied Materials Korea",
+      "source_type": "공식-글로벌",
+      "url": "https://careers.appliedmaterials.com/careers",
+      "priority": 2
+    },
+    {
+      "company": "ASML Korea",
+      "source_type": "공식-국내",
+      "url": "https://asmlkorea.careerlink.kr/jobs",
+      "priority": 1
+    },
+    {
+      "company": "ASML Korea",
+      "source_type": "공식-글로벌",
+      "url": "https://www.asml.com/en/careers/find-your-job",
+      "priority": 2
+    },
+    {
+      "company": "Tokyo Electron Korea",
+      "source_type": "공식-국내",
+      "url": "https://tel.recruiter.co.kr/career/career",
+      "priority": 1
+    },
+    {
+      "company": "ASM Korea",
+      "source_type": "공식-글로벌",
+      "url": "https://www.asm.com/open-vacancies",
+      "priority": 1
+    },
+    {
+      "company": "Onto Innovation Korea",
+      "source_type": "공식-글로벌",
+      "url": "https://wd1.myworkdaysite.com/recruiting/onto/ONTO_Careers",
+      "priority": 1
+    },
+    {
+      "company": "Tesla Korea",
+      "source_type": "공식-한국채용",
+      "url": "https://hire-r1.mokahr.com/social-recruitment/tesla/100000166#/",
+      "priority": 1
+    },
+    {
+      "company": "Micron",
+      "source_type": "공식-글로벌",
+      "url": "https://careers.micron.com/careers",
+      "priority": 1
+    },
+    {
+      "company": "Samsung Electronics DS",
+      "source_type": "공식-통합채용",
+      "url": "https://www.samsungcareers.com/hr/",
+      "priority": 1
+    },
+    {
+      "company": "SK hynix",
+      "source_type": "공식-채용",
+      "url": "https://talent.skhynix.com/hub/ko/apply/job",
+      "priority": 1
+    },
+    {
+      "company": "Samsung Display",
+      "source_type": "공식-통합채용",
+      "url": "https://www.samsungcareers.com/hr/",
+      "priority": 1
+    },
+    {
+      "company": "KIST",
+      "source_type": "공식-기관 채용공고",
+      "url": "https://www.kist.re.kr/ko/notice/employment-announcement.do",
+      "priority": 1
+    },
+    {
+      "company": "KRISS",
+      "source_type": "공식-기관 채용공고",
+      "url": "https://www.kriss.re.kr/board.es?bid=0006&mid=a10502020000",
+      "priority": 1
+    },
+    {
+      "company": "ETRI",
+      "source_type": "공식-채용시스템",
+      "url": "https://etri.recruitment.kr/",
+      "priority": 1
+    },
+    {
+      "company": "NNFC",
+      "source_type": "공식-기관 채용공고",
+      "url": "https://www.nnfc.re.kr/bbs/BBSMSTR_000000000004/list.do",
+      "priority": 1
+    },
+    {
+      "company": "Hyundai Mobis",
+      "source_type": "공식-채용",
+      "url": "https://careers.mobis.com/jobs",
+      "priority": 1
+    },
+    {
+      "company": "LG Electronics",
+      "source_type": "공식-통합채용",
+      "url": "https://careers.lg.com/",
+      "priority": 1
+    },
+    {
+      "company": "Hanwha Systems",
+      "source_type": "공식-통합채용",
+      "url": "https://www.hanwhain.com/web/apply/notification/list.do",
+      "priority": 1
+    },
+    {
+      "company": "Hanwha Aerospace",
+      "source_type": "공식-통합채용",
+      "url": "https://www.hanwhain.com/web/apply/notification/list.do",
+      "priority": 1
+    },
+    {
+      "company": "KAI",
+      "source_type": "공식-채용",
+      "url": "https://koreaaero-recruit.careerlink.kr/",
+      "priority": 1
+    },
+    {
+      "company": "KETI",
+      "source_type": "공식-기관 채용공고",
+      "url": "https://keti.re.kr/notice/employment.php",
+      "priority": 1
+    },
+    {
+      "company": "DB HiTek",
+      "source_type": "공식-채용",
+      "url": "https://dbhitek-recruit.com/",
+      "priority": 1
+    },
+    {
+      "company": "Magnachip",
+      "source_type": "공식-채용",
+      "url": "https://www.magnachip.com/kr/about-us/career/jobs/",
+      "priority": 1
+    },
+    {
+      "company": "LX Semicon",
+      "source_type": "공식-통합채용",
+      "url": "https://lx.recruiter.co.kr/career/home",
+      "priority": 1
+    },
+    {
+      "company": "KIMS",
+      "source_type": "공식-기관 채용공고",
+      "url": "https://www.kims.re.kr/v17/bbx/board.php?bx_table=03_05",
+      "priority": 1
+    },
+    {
+      "company": "KBSI",
+      "source_type": "공식-기관 채용공고",
+      "url": "https://www.kbsi.re.kr/board/list?boardId=BOARD00086&menuId=MENU002051102000000",
+      "priority": 1
+    },
+    {
+      "company": "KIST",
+      "source_type": "공식-채용시스템",
+      "url": "https://kist.fairy.im/",
+      "priority": 2
+    },
+    {
+      "company": "ETRI",
+      "source_type": "공식-기관 채용공고",
+      "url": "https://www.etri.re.kr/kor/bbs/list.etri?b_board_id=ETRI39",
+      "priority": 2
+    },
+    {
+      "company": "LX Semicon",
+      "source_type": "공식-뉴스룸 채용",
+      "url": "https://news.lxsemicon.com/category/recruitment",
+      "priority": 2
+    },
+    {
+      "company": "SK hynix",
+      "source_type": "공식-SK Careers",
+      "url": "https://www.skcareers.com/Recruit",
+      "priority": 2
+    },
+    {
+      "company": "Hanwha Systems",
+      "source_type": "보조-Catch",
+      "url": "https://www.catch.co.kr/Comp/RecruitInfo/128888",
+      "priority": 2
+    },
+    {
+      "company": "Hanwha Systems",
+      "source_type": "보조-Saramin",
+      "url": "https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09",
+      "priority": 3
+    },
+    {
+      "company": "Hanwha Systems",
+      "source_type": "보조-JobKorea",
+      "url": "https://www.jobkorea.co.kr/company/1689805/Recruit",
+      "priority": 4
+    },
+    {
+      "company": "Hanwha Aerospace",
+      "source_type": "보조-JobKorea",
+      "url": "https://www.jobkorea.co.kr/company/1746186/Recruit",
+      "priority": 2
+    },
+    {
+      "company": "Hanwha Aerospace",
+      "source_type": "보조-Saramin",
+      "url": "https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09",
+      "priority": 3
+    },
+    {
+      "company": "Hanwha Aerospace",
+      "source_type": "보조-Catch",
+      "url": "https://www.catch.co.kr/Comp/RecruitInfo/380784",
+      "priority": 4
+    }
+  ]
+}
