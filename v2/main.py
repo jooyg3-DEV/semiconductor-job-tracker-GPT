@@ -397,6 +397,268 @@ def merge_candidates(*groups):
     return list(merged.values())
 
 
+def build_candidate(
+    source: dict,
+    title: str,
+    url: str,
+    job_id: str = "",
+    location: str = "",
+    parser: str = "adapter",
+    confidence: float = 0.95,
+):
+    url = canonical(url)
+    title = clean(title)
+    job_id = clean(job_id) or extract_job_id(url, title)
+    if not url or not title:
+        return None
+    key_seed = job_id or hashlib.sha1(url.encode()).hexdigest()[:16]
+    return {
+        "company": source["company"],
+        "source_type": source["source_type"],
+        "source_url": source["url"],
+        "source_priority": source["priority"],
+        "job_key": f"{source['company']}|{key_seed}",
+        "job_id": job_id,
+        "title": title[:350],
+        "location_signal": clean(location)[:200],
+        "detail_url": url,
+        "parser": parser,
+        "confidence": confidence,
+        "raw_hash": hashlib.sha1(f"{title}|{url}".encode()).hexdigest()[:16],
+    }
+
+
+def workday_spec(source: dict):
+    p = urlparse(source["url"])
+    host = p.netloc.lower()
+    segments = [x for x in p.path.split("/") if x]
+
+    if "myworkdayjobs.com" in host:
+        tenant = host.split(".")[0]
+        site = next((x for x in segments if x.lower() not in {"en-us", "ko-kr"}), "")
+        if not site:
+            return None
+        api_host = host
+        ui_base = f"https://{host}/en-US/{site}"
+        return tenant, site, api_host, ui_base
+
+    if "myworkdaysite.com" in host and len(segments) >= 3 and segments[0].lower() == "recruiting":
+        tenant, site = segments[1], segments[2]
+        api_host = host.replace("myworkdaysite.com", "myworkdayjobs.com")
+        ui_base = f"https://{api_host}/en-US/{site}"
+        return tenant, site, api_host, ui_base
+
+    return None
+
+
+def collect_workday_api(fetcher, source: dict):
+    spec = workday_spec(source)
+    if not spec:
+        return [], ""
+    tenant, site, api_host, ui_base = spec
+    endpoint = f"https://{api_host}/wday/cxs/{tenant}/{site}/jobs"
+    results = {}
+    offset = 0
+    limit = 20
+    total = None
+
+    try:
+        while offset < 500:
+            response = fetcher.session.post(
+                endpoint,
+                json={
+                    "appliedFacets": {},
+                    "limit": limit,
+                    "offset": offset,
+                    "searchText": "",
+                },
+                timeout=20,
+                headers={"Content-Type": "application/json"},
+            )
+            response.raise_for_status()
+            payload = response.json()
+            postings = payload.get("jobPostings") or []
+            if total is None:
+                total = int(payload.get("total") or 0)
+
+            for posting in postings:
+                title = clean(posting.get("title"))
+                external = clean(posting.get("externalPath"))
+                location = clean(posting.get("locationsText"))
+                bullets = " ".join(clean(x) for x in (posting.get("bulletFields") or []))
+                combined = f"{title} {location} {bullets} {external}"
+                if source["company"] in {"KLA Korea", "Onto Innovation Korea"} and not korea_signal(combined):
+                    continue
+                if not external:
+                    continue
+                url = canonical(ui_base.rstrip("/") + "/" + external.lstrip("/"))
+                jid = extract_job_id(url, combined)
+                item = build_candidate(
+                    source, title, url, jid, location or korea_signal(combined),
+                    "workday-api", 0.99,
+                )
+                if item:
+                    results[item["job_key"]] = item
+
+            offset += len(postings)
+            if not postings or len(postings) < limit or (total and offset >= total):
+                break
+
+        return list(results.values()), ""
+    except Exception as exc:
+        return [], f"workday-api {type(exc).__name__}: {exc}"[:1000]
+
+
+def collect_asm_greenhouse(fetcher, source: dict):
+    if source["company"] != "ASM Korea":
+        return [], ""
+    endpoint = "https://boards-api.greenhouse.io/v1/boards/asm/jobs?content=true"
+    results = {}
+    try:
+        response = fetcher.session.get(endpoint, timeout=20)
+        response.raise_for_status()
+        jobs = response.json().get("jobs") or []
+        for job in jobs:
+            location = clean((job.get("location") or {}).get("name"))
+            if not korea_signal(location):
+                continue
+            jid = clean(job.get("id"))
+            title = clean(job.get("title"))
+            url = clean(job.get("absolute_url"))
+            item = build_candidate(
+                source, title, url, jid, location, "greenhouse-api", 0.99
+            )
+            if item:
+                results[item["job_key"]] = item
+        return list(results.values()), ""
+    except Exception as exc:
+        return [], f"greenhouse-api {type(exc).__name__}: {exc}"[:1000]
+
+
+LAM_LOCATION_TERMS = (
+    "korea",
+    "south korea",
+    "yongin",
+    "icheon",
+    "yongin or icheon",
+    "pyeongtaek",
+    "cheongju",
+    "seoul",
+)
+
+
+def lam_heading(soup, fallback: str) -> str:
+    for tag in soup.find_all(["h1", "h2", "h3"]):
+        value = clean(tag.get_text(" ", strip=True))
+        if value and value.lower() not in {"jobs", "single position", "careers at lam research"}:
+            if JOB_WORDS.search(value):
+                return value
+    return fallback
+
+
+def collect_lam_korea(fetcher, source: dict):
+    if source["company"] != "Lam Research Korea" or "글로벌" not in source["source_type"]:
+        return [], ""
+
+    listing_links = {}
+    errors = []
+    base = "https://careers.lamresearch.com/careers"
+
+    for term in LAM_LOCATION_TERMS:
+        consecutive_empty = 0
+        for start in (0, 10, 20, 30, 40):
+            url = f"{base}?filter_rmk_location={quote_plus(term)}&sort_by=timestamp&start={start}"
+            try:
+                response = fetcher.session.get(url, timeout=20)
+                response.raise_for_status()
+                soup = BeautifulSoup(response.text, "html.parser")
+                found_here = 0
+                for anchor in soup.find_all("a", href=True):
+                    href = clean(anchor.get("href"))
+                    full = canonical(urljoin(base, href))
+                    path = urlparse(full).path.lower()
+                    if "/careers/job/" not in path and not (
+                        "/careers/apply" in path and "pid=" in full
+                    ):
+                        continue
+                    title = clean(anchor.get_text(" ", strip=True)) or clean(anchor.get("title"))
+                    if not title or title.lower() in IGNORE_TEXT:
+                        continue
+                    context = anchor_context(anchor, max_levels=5, max_chars=1600)
+                    combined = f"{title} {context} {full}"
+                    if not korea_signal(combined) and not re.search(r"\bKR[-\s]", combined, re.I):
+                        continue
+                    listing_links.setdefault(full, title)
+                    found_here += 1
+
+                if found_here == 0:
+                    consecutive_empty += 1
+                else:
+                    consecutive_empty = 0
+                if consecutive_empty >= 2:
+                    break
+            except Exception as exc:
+                errors.append(f"{term}:{start}:{type(exc).__name__}")
+                break
+
+    results = {}
+    for url, fallback_title in list(listing_links.items())[:100]:
+        try:
+            response = fetcher.session.get(url, timeout=20)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "html.parser")
+            text_value = clean(soup.get_text(" ", strip=True))
+            if "no longer accepting applications" in text_value.lower():
+                continue
+            if not korea_signal(text_value) and not re.search(r"\bKR[-\s]", text_value, re.I):
+                continue
+
+            match = re.search(r"Requisition ID\s*([0-9]{5,7})\b", text_value, re.I)
+            jid = match.group(1) if match else extract_job_id(url, text_value)
+            title = lam_heading(soup, fallback_title)
+            loc_match = re.search(
+                r"Work Location\s+(.{1,120}?)(?:Work Country|The group|The impact|Job description)",
+                text_value,
+                re.I,
+            )
+            location = clean(loc_match.group(1)) if loc_match else korea_signal(text_value)
+            item = build_candidate(
+                source, title, url, jid, location, "lam-korea-search", 0.98
+            )
+            if item:
+                results[item["job_key"]] = item
+        except Exception as exc:
+            errors.append(f"detail:{type(exc).__name__}")
+
+    error = ",".join(errors[:8])
+    return list(results.values()), error
+
+
+def collect_platform_adapter(fetcher, source: dict):
+    groups = []
+    errors = []
+
+    workday_items, workday_error = collect_workday_api(fetcher, source)
+    if workday_items:
+        groups.append(workday_items)
+    if workday_error:
+        errors.append(workday_error)
+
+    asm_items, asm_error = collect_asm_greenhouse(fetcher, source)
+    if asm_items:
+        groups.append(asm_items)
+    if asm_error:
+        errors.append(asm_error)
+
+    lam_items, lam_error = collect_lam_korea(fetcher, source)
+    if lam_items:
+        groups.append(lam_items)
+    if lam_error:
+        errors.append(lam_error)
+
+    return merge_candidates(*groups), "; ".join(errors)[:1500]
+
+
 def previous_snapshot() -> dict[str, int]:
     path = DATA / "latest_snapshot.json"
     if not path.exists():
