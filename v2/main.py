@@ -7,13 +7,13 @@ import os
 import re
 from datetime import date, datetime, timezone
 from pathlib import Path
-from urllib.parse import parse_qsl, urlencode, urljoin, urlparse, urlunparse
+from urllib.parse import parse_qsl, quote_plus, urlencode, urljoin, urlparse, urlunparse
 
 import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-VERSION = "2.1"
+VERSION = "2.2"
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config.json"
 DATA = ROOT / "data"
@@ -98,15 +98,30 @@ def extract_job_id(url: str, text: str = "") -> str:
     ):
         if clean(q.get(key)):
             return clean(q[key])
+
     target = f"{p.path} {text}"
+
+    # ASML uses slugs such as "...-j00353351". Normalize to the master form.
+    match = re.search(r"(?:^|[-_/])j(\d{8})\b", target, re.I)
+    if match:
+        return f"J-{match.group(1)}"
+
+    # Workday job slugs normally end in "_2639689-5" or "_2635637".
+    match = re.search(r"_(\d{6,10})(?:-\d+)?(?:$|[/?#\s])", target)
+    if match:
+        return match.group(1)
+
     for pattern in (
-        r"\bJ-\d{6,}\b", r"\bR\d{5,}\b", r"\bRC\d{8,}\b",
+        r"\bJ-\d{6,}\b", r"\bR-?\d{4,}\b", r"\bRC\d{8,}\b",
         r"(?:/job/|/jobs/|job-)(\d{5,12})(?:\b|/|-)",
         r"(?:requisition|req)[-_ /:]?(\d{5,12})\b",
     ):
         match = re.search(pattern, target, re.I)
         if match:
-            return match.group(1) if match.lastindex else match.group(0)
+            value = match.group(1) if match.lastindex else match.group(0)
+            if re.fullmatch(r"R\d{4,}", value, re.I):
+                return value.upper()
+            return value
     return ""
 
 
@@ -145,6 +160,22 @@ def load_config(company_filter: str = ""):
     sources = [s for s in cfg["sources"] if s["company"] in allowed]
     sources.sort(key=lambda x: (companies.index(x["company"]), x["priority"], x["source_type"]))
     return cfg, companies, sources
+
+
+def anchor_context(anchor, max_levels: int = 4, max_chars: int = 1200) -> str:
+    """Return the smallest useful card-like ancestor text without swallowing a whole page."""
+    best = clean(anchor.parent.get_text(" ", strip=True) if anchor.parent else "")
+    node = anchor.parent
+    for _ in range(max_levels):
+        if node is None:
+            break
+        text_value = clean(node.get_text(" ", strip=True))
+        if 20 <= len(text_value) <= max_chars:
+            best = text_value
+        if len(text_value) > max_chars:
+            break
+        node = node.parent
+    return best[:max_chars]
 
 
 def source_needs_browser(source: dict, request_count: int) -> bool:
@@ -192,11 +223,20 @@ def url_allowed(source: dict, url: str, title: str, context: str) -> bool:
             return False
         return bool(korea_signal(combined))
 
+    if company == "ASML Korea":
+        base = "/en/careers/find-your-job/"
+        if not path.startswith(base) or path.rstrip("/") == base.rstrip("/"):
+            return False
+        return bool(re.search(r"-j\d{8}$", path, re.I))
+
     if company == "SK hynix":
         if "talent.skhynix.com" in p.netloc.lower():
             return "/hub/ko/apply/job" in path and path.rstrip("/") != "/hub/ko/apply/job"
         if "skcareers.com" in p.netloc.lower():
-            return "/recruit/detail/" in path
+            if "/recruit/detail/" not in path:
+                return False
+            lower = combined.lower()
+            return "sk hynix" in lower or "sk하이닉스" in lower
         return False
 
     if company in ("Samsung Electronics DS", "Samsung Display"):
@@ -313,8 +353,7 @@ def extract(source: dict, html: str, parser: str):
         if not title or len(title) < 3 or title.lower() in IGNORE_TEXT:
             continue
 
-        parent = anchor.parent
-        context = clean(parent.get_text(" ", strip=True) if parent else "")[:700]
+        context = anchor_context(anchor)
         if obviously_closed(f"{title} {context}"):
             continue
         if not url_allowed(source, url, title, context):
