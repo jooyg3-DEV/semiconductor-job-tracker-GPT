@@ -1,6 +1,11 @@
 name: job-tracker-blindspot-v2
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'v2/main.py'
   schedule:
     - cron: '20 23 * * 0,2,4'
   workflow_dispatch:
@@ -20,9 +25,50 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: write
+      actions: read
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Find previous completed blind-spot run
+        id: previous
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          previous_run_id="$(
+            gh api --method GET               "repos/${GITHUB_REPOSITORY}/actions/workflows/job_tracker_blindspot-v2.yml/runs"               -f status=completed               -f per_page=20               --jq ".workflow_runs[] | select(.id != ${GITHUB_RUN_ID}) | .id"               | head -n 1
+          )"
+          echo "run_id=${previous_run_id}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore previous snapshot artifact
+        if: steps.previous.outputs.run_id != ''
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: blindspot-v2-*
+          path: /tmp/previous-blindspot
+          merge-multiple: true
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.previous.outputs.run_id }}
+
+      - name: Restore previous snapshot
+        if: steps.previous.outputs.run_id != ''
+        shell: bash
+        run: |
+          if [ -f /tmp/previous-blindspot/v2/data/latest_snapshot.json ]; then
+            mkdir -p v2/data
+            cp /tmp/previous-blindspot/v2/data/latest_snapshot.json v2/data/latest_snapshot.json
+            echo "Restored previous snapshot from run ${{ steps.previous.outputs.run_id }}"
+          elif [ -f /tmp/previous-blindspot/latest_snapshot.json ]; then
+            mkdir -p v2/data
+            cp /tmp/previous-blindspot/latest_snapshot.json v2/data/latest_snapshot.json
+            echo "Restored previous snapshot from run ${{ steps.previous.outputs.run_id }}"
+          else
+            echo "No previous snapshot artifact was available; continuing without COUNT_DROP baseline."
+          fi
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -64,5 +110,7 @@ jobs:
             echo "No snapshot changes to publish."
           else
             git commit -m "Update blind-spot snapshot [skip ci]"
-            git push
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
           fi
