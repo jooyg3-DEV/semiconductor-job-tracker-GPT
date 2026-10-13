@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-VERSION = "2.7"
+VERSION = "2.8"
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config.json"
 DATA = ROOT / "data"
@@ -1063,6 +1063,11 @@ def probe_sentinels(fetcher: Fetcher, sentinels: list, companies: list, merged: 
             checks.append(check)
             continue
 
+        title = clean(sentinel.get("title"))
+        location = clean(sentinel.get("location"))
+        active = False
+        api_error = ""
+
         try:
             response = fetcher.session.get(
                 endpoint,
@@ -1084,13 +1089,13 @@ def probe_sentinels(fetcher: Fetcher, sentinels: list, companies: list, merged: 
             title = clean(
                 info.get("title")
                 or payload.get("title")
-                or sentinel.get("title")
+                or title
             )
             location = clean(
                 info.get("location")
                 or info.get("locationText")
                 or info.get("primaryLocation")
-                or sentinel.get("location")
+                or location
             )
 
             payload_text = clean(json.dumps(payload, ensure_ascii=False)).lower()
@@ -1103,44 +1108,106 @@ def probe_sentinels(fetcher: Fetcher, sentinels: list, companies: list, merged: 
                 checks.append(check)
                 continue
 
-            # A valid Workday detail JSON response is treated as active. The job
-            # may be directly accessible even when the listing API omits it.
-            if already_present:
-                check["state"] = "ACTIVE_PRESENT"
-                check["detail"] = "Active official detail is already present in collector output."
+            active = True
+        except Exception as exc:
+            api_error = f"{type(exc).__name__}: {exc}"[:800]
+
+        # Some Workday tenants allow the public UI detail page but reject the
+        # corresponding CXS detail endpoint with HTTP 403. In that case use a
+        # rendered browser page as an independent official-detail fallback.
+        if not active:
+            try:
+                html = fetcher.browser_html(url)
+                soup = BeautifulSoup(html, "html.parser")
+                page_text = clean(soup.get_text(" ", strip=True))
+                page_lower = page_text.lower()
+
+                closed_tokens = (
+                    "job posting is no longer available",
+                    "no longer accepting applications",
+                    "this job is no longer available",
+                    "position has been filled",
+                )
+                if any(token in page_lower for token in closed_tokens):
+                    check["state"] = "CLOSED"
+                    check["detail"] = "Official rendered Workday page reports the posting as closed."
+                    checks.append(check)
+                    continue
+
+                id_present = job_id in page_text or job_id in html
+                title_hint = clean(sentinel.get("title"))
+                title_present = bool(
+                    title_hint and (
+                        title_hint.lower() in page_lower
+                        or any(
+                            clean(tag.get_text(" ", strip=True)).lower() == title_hint.lower()
+                            for tag in soup.find_all(["h1", "h2"])
+                        )
+                    )
+                )
+                apply_present = bool(re.search(r"\bapply\b|지원", page_text, re.I))
+
+                # Require the requisition id plus either the expected title or
+                # an application affordance. This avoids treating a generic
+                # Workday shell page as proof that the job is active.
+                active = id_present and (title_present or apply_present)
+
+                if active:
+                    heading = next(
+                        (
+                            clean(tag.get_text(" ", strip=True))
+                            for tag in soup.find_all(["h1", "h2"])
+                            if clean(tag.get_text(" ", strip=True))
+                        ),
+                        "",
+                    )
+                    if heading and len(heading) <= 350:
+                        title = heading
+                else:
+                    raise RuntimeError(
+                        "Rendered detail page did not contain enough active-job evidence"
+                    )
+            except Exception as browser_exc:
+                check["state"] = "ERROR"
+                check["detail"] = (
+                    f"API probe failed ({api_error}); browser fallback failed "
+                    f"({type(browser_exc).__name__}: {browser_exc})"
+                )[:1200]
                 checks.append(check)
                 continue
 
-            source = {
-                "company": company,
-                "source_type": "공식-상세검증",
-                "url": url,
-                "priority": int(sentinel.get("priority") or 1),
-            }
-            item = build_candidate(
-                source,
-                title or f"Known active requisition {job_id}",
-                url,
-                job_id,
-                location,
-                "sentinel-detail",
-                0.99,
+        if already_present:
+            check["state"] = "ACTIVE_PRESENT"
+            check["detail"] = "Active official detail is already present in collector output."
+            checks.append(check)
+            continue
+
+        source = {
+            "company": company,
+            "source_type": "공식-상세검증",
+            "url": url,
+            "priority": int(sentinel.get("priority") or 1),
+        }
+        item = build_candidate(
+            source,
+            title or f"Known active requisition {job_id}",
+            url,
+            job_id,
+            location,
+            "sentinel-detail",
+            0.99,
+        )
+        if item:
+            recovered.append(item)
+            check["state"] = "ACTIVE_RECOVERED"
+            check["detail"] = (
+                "Official detail is active but the listing collector missed it; "
+                "candidate recovered through sentinel validation."
             )
-            if item:
-                recovered.append(item)
-                check["state"] = "ACTIVE_RECOVERED"
-                check["detail"] = (
-                    "Official detail is active but the listing collector missed it; "
-                    "candidate recovered through sentinel validation."
-                )
-            else:
-                check["state"] = "ERROR"
-                check["detail"] = "Official detail was active but candidate construction failed."
-            checks.append(check)
-        except Exception as exc:
+        else:
             check["state"] = "ERROR"
-            check["detail"] = f"{type(exc).__name__}: {exc}"[:1200]
-            checks.append(check)
+            check["detail"] = "Official detail was active but candidate construction failed."
+        checks.append(check)
 
     return recovered, checks
 
@@ -1231,7 +1298,7 @@ def collect_one(fetcher: Fetcher, source: dict):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.7")
+    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.8")
     parser.add_argument("--company", default="", help="Optional company substring for manual debug")
     args = parser.parse_args()
 
