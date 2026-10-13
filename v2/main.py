@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-VERSION = "2.4"
+VERSION = "2.5"
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config.json"
 DATA = ROOT / "data"
@@ -501,14 +501,18 @@ def collect_workday_api(fetcher, source: dict):
 
     search_terms = [""]
     max_records = 400
+    applied_facets = {}
 
     if source["company"] == "KLA Korea":
-        # KLA's global Workday tenant can place Korea requisitions beyond the
-        # first 400 rows even when broad keyword searches are used. Enumerate
-        # the full global feed (up to a generous safety cap) and filter by the
-        # Korea location signal instead of relying on searchText ranking.
+        # Workday exposes a country facet. Using it is more complete than
+        # enumerating the global board and post-filtering locations because
+        # some directly accessible Korea requisitions do not appear reliably
+        # in broad global search results.
         search_terms = [""]
-        max_records = 3000
+        applied_facets = {
+            "locationCountry": ["7a5a2aadf9d34086a2bfbfd408bc28da"]
+        }
+        max_records = 1000
     elif source["company"] == "Onto Innovation Korea":
         search_terms = ["", "Korea", "Hwasung", "Hwaseong", "Applications", "Field Service"]
         max_records = 800
@@ -521,7 +525,7 @@ def collect_workday_api(fetcher, source: dict):
                 response = fetcher.session.post(
                     endpoint,
                     json={
-                        "appliedFacets": {},
+                        "appliedFacets": applied_facets,
                         "limit": 20,
                         "offset": offset,
                         "searchText": search_text,
@@ -993,7 +997,7 @@ def collect_one(fetcher: Fetcher, source: dict):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.4")
+    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.5")
     parser.add_argument("--company", default="", help="Optional company substring for manual debug")
     args = parser.parse_args()
 
