@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-VERSION = "2.3"
+VERSION = "2.4"
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config.json"
 DATA = ROOT / "data"
@@ -500,29 +500,24 @@ def collect_workday_api(fetcher, source: dict):
     errors = []
 
     search_terms = [""]
+    max_records = 400
+
     if source["company"] == "KLA Korea":
-        search_terms = [
-            "",
-            "Korea",
-            "Hwaseong",
-            "Icheon",
-            "Applications",
-            "Application",
-            "Regional Development",
-            "Customer Engagement",
-            "Product Development",
-            "Process",
-            "System",
-            "Engineer",
-        ]
+        # KLA's global Workday tenant can place Korea requisitions beyond the
+        # first 400 rows even when broad keyword searches are used. Enumerate
+        # the full global feed (up to a generous safety cap) and filter by the
+        # Korea location signal instead of relying on searchText ranking.
+        search_terms = [""]
+        max_records = 3000
     elif source["company"] == "Onto Innovation Korea":
         search_terms = ["", "Korea", "Hwasung", "Hwaseong", "Applications", "Field Service"]
+        max_records = 800
 
     for search_text in search_terms:
         offset = 0
         total = None
         try:
-            while offset < 400:
+            while offset < max_records:
                 response = fetcher.session.post(
                     endpoint,
                     json={
@@ -567,6 +562,11 @@ def collect_workday_api(fetcher, source: dict):
                 offset += len(postings)
                 if not postings or len(postings) < 20 or (total and offset >= total):
                     break
+
+            if total and total > max_records and offset >= max_records:
+                errors.append(
+                    f"{search_text or 'ALL'}:TRUNCATED:{max_records}/{total}"
+                )
         except Exception as exc:
             errors.append(f"{search_text or 'ALL'}:{type(exc).__name__}:{exc}")
 
@@ -993,7 +993,7 @@ def collect_one(fetcher: Fetcher, source: dict):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.3")
+    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.4")
     parser.add_argument("--company", default="", help="Optional company substring for manual debug")
     args = parser.parse_args()
 
