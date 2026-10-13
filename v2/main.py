@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-VERSION = "2.9"
+VERSION = "2.10"
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config.json"
 DATA = ROOT / "data"
@@ -1395,7 +1395,7 @@ def collect_one(fetcher: Fetcher, source: dict):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.9")
+    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.10")
     parser.add_argument("--company", default="", help="Optional company substring for manual debug")
     args = parser.parse_args()
 
