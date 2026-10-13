@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-VERSION = "2.5"
+VERSION = "2.6"
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config.json"
 DATA = ROOT / "data"
@@ -490,6 +490,81 @@ def workday_spec(source: dict):
     return None
 
 
+def _walk_facet_values(values):
+    """Yield nested Workday facet values defensively across tenant response shapes."""
+    for value in values or []:
+        if not isinstance(value, dict):
+            continue
+        yield value
+        for key in ("values", "children", "subFacets"):
+            nested = value.get(key)
+            if isinstance(nested, list):
+                yield from _walk_facet_values(nested)
+
+
+def _find_workday_korea_facet(payload: dict):
+    """Return (facetParameter, valueId) for a Korea country/location facet if advertised."""
+    facets = payload.get("facets") or payload.get("availableFacets") or []
+    candidates = []
+
+    for facet in facets:
+        if not isinstance(facet, dict):
+            continue
+        parameter = clean(
+            facet.get("facetParameter")
+            or facet.get("parameter")
+            or facet.get("name")
+        )
+        descriptor = clean(
+            facet.get("descriptor")
+            or facet.get("label")
+            or facet.get("displayName")
+        )
+        if not parameter:
+            continue
+
+        for value in _walk_facet_values(facet.get("values") or facet.get("items") or []):
+            value_id = clean(value.get("id") or value.get("value"))
+            value_label = clean(
+                value.get("descriptor")
+                or value.get("label")
+                or value.get("displayName")
+                or value.get("name")
+            )
+            if not value_id:
+                continue
+
+            label_lower = value_label.lower()
+            parameter_lower = parameter.lower()
+            descriptor_lower = descriptor.lower()
+
+            # Prefer an exact Korea country entry. Some tenants expose countries
+            # under locationHierarchy1, others under locationCountry or a custom key.
+            is_korea = (
+                label_lower in {"korea", "south korea", "republic of korea", "대한민국", "한국"}
+                or "south korea" in label_lower
+                or "republic of korea" in label_lower
+            )
+            if not is_korea:
+                continue
+
+            rank = 0
+            if "country" in parameter_lower or "country" in descriptor_lower:
+                rank += 5
+            if "hierarchy1" in parameter_lower:
+                rank += 4
+            if "location" in parameter_lower or "location" in descriptor_lower:
+                rank += 2
+            candidates.append((rank, parameter, value_id, value_label))
+
+    if not candidates:
+        return None
+
+    candidates.sort(reverse=True)
+    _, parameter, value_id, _ = candidates[0]
+    return parameter, value_id
+
+
 def collect_workday_api(fetcher, source: dict):
     spec = workday_spec(source)
     if not spec:
@@ -499,82 +574,100 @@ def collect_workday_api(fetcher, source: dict):
     results = {}
     errors = []
 
-    search_terms = [""]
-    max_records = 400
-    applied_facets = {}
-
-    if source["company"] == "KLA Korea":
-        # Workday exposes a country facet. Using it is more complete than
-        # enumerating the global board and post-filtering locations because
-        # some directly accessible Korea requisitions do not appear reliably
-        # in broad global search results.
-        search_terms = [""]
-        applied_facets = {
-            "locationCountry": ["7a5a2aadf9d34086a2bfbfd408bc28da"]
-        }
-        max_records = 1000
-    elif source["company"] == "Onto Innovation Korea":
-        search_terms = ["", "Korea", "Hwasung", "Hwaseong", "Applications", "Field Service"]
-        max_records = 800
-
-    for search_text in search_terms:
+    def collect_query(search_text: str, applied_facets: dict, max_records: int):
         offset = 0
         total = None
+        first_payload = None
+        while offset < max_records:
+            response = fetcher.session.post(
+                endpoint,
+                json={
+                    "appliedFacets": applied_facets,
+                    "limit": 20,
+                    "offset": offset,
+                    "searchText": search_text,
+                },
+                timeout=20,
+                headers={"Content-Type": "application/json"},
+            )
+            response.raise_for_status()
+            payload = response.json()
+            if first_payload is None:
+                first_payload = payload
+            postings = payload.get("jobPostings") or []
+            if total is None:
+                total = int(payload.get("total") or 0)
+
+            for posting in postings:
+                title = clean(posting.get("title"))
+                external = clean(posting.get("externalPath"))
+                location = clean(posting.get("locationsText"))
+                bullets = " ".join(clean(x) for x in (posting.get("bulletFields") or []))
+                combined = f"{title} {location} {bullets} {external}"
+                if source["company"] in {"KLA Korea", "Onto Innovation Korea"} and not korea_signal(combined):
+                    continue
+                if not external:
+                    continue
+                url = canonical(ui_base.rstrip("/") + "/" + external.lstrip("/"))
+                jid = extract_job_id(url, combined)
+                item = build_candidate(
+                    source,
+                    title,
+                    url,
+                    jid,
+                    location or korea_signal(combined),
+                    "workday-api",
+                    0.99,
+                )
+                if item:
+                    results[item["job_key"]] = item
+
+            offset += len(postings)
+            if not postings or len(postings) < 20 or (total and offset >= total):
+                break
+
+        if total and total > max_records and offset >= max_records:
+            errors.append(
+                f"{search_text or 'ALL'}:TRUNCATED:{max_records}/{total}"
+            )
+        return first_payload or {}
+
+    if source["company"] == "KLA Korea":
+        # Phase 1: always keep the proven unfiltered enumeration path. This
+        # prevents a bad/changed facet from collapsing coverage to zero.
+        first_payload = {}
         try:
-            while offset < max_records:
-                response = fetcher.session.post(
-                    endpoint,
-                    json={
-                        "appliedFacets": applied_facets,
-                        "limit": 20,
-                        "offset": offset,
-                        "searchText": search_text,
-                    },
-                    timeout=20,
-                    headers={"Content-Type": "application/json"},
-                )
-                response.raise_for_status()
-                payload = response.json()
-                postings = payload.get("jobPostings") or []
-                if total is None:
-                    total = int(payload.get("total") or 0)
-
-                for posting in postings:
-                    title = clean(posting.get("title"))
-                    external = clean(posting.get("externalPath"))
-                    location = clean(posting.get("locationsText"))
-                    bullets = " ".join(clean(x) for x in (posting.get("bulletFields") or []))
-                    combined = f"{title} {location} {bullets} {external}"
-                    if source["company"] in {"KLA Korea", "Onto Innovation Korea"} and not korea_signal(combined):
-                        continue
-                    if not external:
-                        continue
-                    url = canonical(ui_base.rstrip("/") + "/" + external.lstrip("/"))
-                    jid = extract_job_id(url, combined)
-                    item = build_candidate(
-                        source,
-                        title,
-                        url,
-                        jid,
-                        location or korea_signal(combined),
-                        "workday-api",
-                        0.99,
-                    )
-                    if item:
-                        results[item["job_key"]] = item
-
-                offset += len(postings)
-                if not postings or len(postings) < 20 or (total and offset >= total):
-                    break
-
-            if total and total > max_records and offset >= max_records:
-                errors.append(
-                    f"{search_text or 'ALL'}:TRUNCATED:{max_records}/{total}"
-                )
+            first_payload = collect_query("", {}, 3000)
         except Exception as exc:
-            errors.append(f"{search_text or 'ALL'}:{type(exc).__name__}:{exc}")
+            errors.append(f"ALL:{type(exc).__name__}:{exc}")
 
-    return list(results.values()), "; ".join(errors[:6])[:1200]
+        # Phase 2: discover the tenant's actual Korea facet from Workday's own
+        # response instead of assuming a parameter name. Merge any extra Korea
+        # postings found by the server-side facet with Phase 1.
+        korea_facet = _find_workday_korea_facet(first_payload)
+        if korea_facet:
+            parameter, value_id = korea_facet
+            try:
+                collect_query("", {parameter: [value_id]}, 1000)
+            except Exception as exc:
+                errors.append(
+                    f"KOREA_FACET:{parameter}:{type(exc).__name__}:{exc}"
+                )
+        else:
+            errors.append("KOREA_FACET_NOT_FOUND")
+    elif source["company"] == "Onto Innovation Korea":
+        for search_text in ["", "Korea", "Hwasung", "Hwaseong", "Applications", "Field Service"]:
+            try:
+                collect_query(search_text, {}, 800)
+            except Exception as exc:
+                errors.append(f"{search_text or 'ALL'}:{type(exc).__name__}:{exc}")
+    else:
+        try:
+            collect_query("", {}, 400)
+        except Exception as exc:
+            errors.append(f"ALL:{type(exc).__name__}:{exc}")
+
+    return list(results.values()), "; ".join(errors[:8])[:1500]
 
 
 def collect_asm_greenhouse(fetcher, source: dict):
@@ -997,7 +1090,7 @@ def collect_one(fetcher: Fetcher, source: dict):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.5")
+    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.6")
     parser.add_argument("--company", default="", help="Optional company substring for manual debug")
     args = parser.parse_args()
 
