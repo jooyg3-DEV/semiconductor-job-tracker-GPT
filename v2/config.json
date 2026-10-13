@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "generated_from": "public job-source configuration",
-  "generated_at": "2026-10-12",
+  "generated_at": "2026-10-13",
   "companies": [
     {
       "name": "KLA Korea",
@@ -391,6 +391,24 @@
       "source_type": "보조-Catch",
       "url": "https://www.catch.co.kr/Comp/RecruitInfo/380784",
       "priority": 4
+    }
+  ],
+  "sentinels": [
+    {
+      "company": "KLA Korea",
+      "job_id": "2638267",
+      "title": "Division Product Development System engineer",
+      "location": "Hwaseong-si, Korea",
+      "url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/Division-Product-Development-System-engineer_2638267-5",
+      "priority": 1
+    },
+    {
+      "company": "KLA Korea",
+      "job_id": "2637402",
+      "title": "SKBU FaST Customer Engagement Applications Engineer (경력)",
+      "location": "Icheon-si Gyunggi-do, Korea",
+      "url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/SKBU-FaST-Customer-Engagement-Applications-Engineer---_2637402-7",
+      "priority": 1
     }
   ]
 }
