@@ -1,6 +1,11 @@
 name: job-tracker-blindspot-v2
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'v2/main.py'
   schedule:
     - cron: '20 23 * * 0,2,4'
   workflow_dispatch:
@@ -32,7 +37,7 @@ jobs:
         shell: bash
         run: |
           previous_run_id="$(
-            gh api --method GET               "repos/${GITHUB_REPOSITORY}/actions/workflows/job_tracker_blindspot_v2.yml/runs"               -f status=completed               -f per_page=20               --jq ".workflow_runs[] | select(.id != ${GITHUB_RUN_ID}) | .id"               | head -n 1
+            gh api --method GET               "repos/${GITHUB_REPOSITORY}/actions/workflows/job_tracker_blindspot_v2.yml/runs"               -f status=completed               -f per_page=20               --jq ".workflow_runs[] | select(.id != ${GITHUB_RUN_ID} and .conclusion == \"success\") | .id"               | head -n 1
           )"
           echo "run_id=${previous_run_id}" >> "$GITHUB_OUTPUT"
 
