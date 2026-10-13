@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -50,3 +50,19 @@ jobs:
             debug_outputs/*.json
           if-no-files-found: warn
           retention-days: 30
+      - name: Publish latest snapshot for Work integration
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for f in v2/data/latest_snapshot.json v2/data/latest_status.json v2/data/latest_run.json; do
+            if [ -f "$f" ]; then
+              git add -f "$f"
+            fi
+          done
+          if git diff --cached --quiet; then
+            echo "No snapshot changes to publish."
+          else
+            git commit -m "Update blind-spot snapshot [skip ci]"
+            git push
+          fi
