@@ -1,15 +1,15 @@
 {
   "schema_version": 2,
-  "collector_version": "2.10",
-  "run_id": "20261013T145126Z",
-  "started_at": "2026-10-13T14:51:26+00:00",
-  "finished_at": "2026-10-13T15:04:19+00:00",
+  "collector_version": "2.11",
+  "run_id": "20261013T152205Z",
+  "started_at": "2026-10-13T15:22:05+00:00",
+  "finished_at": "2026-10-13T15:35:08+00:00",
   "company_filter": "",
   "company_count": 27,
   "source_count": 42,
-  "candidate_count": 298,
+  "candidate_count": 287,
   "candidate_count_by_company": {
-    "ASM Korea": 48,
+    "ASM Korea": 47,
     "ASML Korea": 4,
     "ETRI": 15,
     "Hyundai Mobis": 2,
@@ -17,7 +17,7 @@
     "KETI": 16,
     "KIMS": 15,
     "KIST": 12,
-    "KLA Korea": 50,
+    "KLA Korea": 40,
     "KRISS": 24,
     "LX Semicon": 3,
     "Lam Research Korea": 75,
@@ -40,20 +40,6 @@
       "parser": "greenhouse-api",
       "confidence": 0.99,
       "raw_hash": "59524f2a072130ac"
-    },
-    {
-      "company": "ASM Korea",
-      "source_type": "공식-글로벌",
-      "source_url": "https://www.asm.com/open-vacancies",
-      "source_priority": 1,
-      "job_key": "ASM Korea|4610485101",
-      "job_id": "4610485101",
-      "title": "Director, Technical (Advanced Packaging)",
-      "location_signal": "South Korea > Icheon",
-      "detail_url": "https://www.asm.com/open-vacancies?gh_jid=4610485101",
-      "parser": "greenhouse-api",
-      "confidence": 0.99,
-      "raw_hash": "927d89373e3bb6c7"
     },
     {
       "company": "ASM Korea",
@@ -972,12 +958,12 @@
       "source_priority": 1,
       "job_key": "Hyundai Mobis|4208",
       "job_id": "4208",
-      "title": "D-9 신입-관리직 [반도체사업담당] 26년 10월 관리직 신입채용 (Chief of Semiconductor Business, entry-admin.) 반도체 영업 반도체사업담당 영업/마케팅 국내영업 강남연구소 2026-10-13 - 2026-10-22 11:00",
+      "title": "D-8 신입-관리직 [반도체사업담당] 26년 10월 관리직 신입채용 (Chief of Semiconductor Business, entry-admin.) 반도체 영업 반도체사업담당 영업/마케팅 국내영업 강남연구소 2026-10-13 - 2026-10-22 11:00",
       "location_signal": "",
       "detail_url": "https://careers.mobis.com/jobs-view?seq=4208",
       "parser": "requests",
       "confidence": 0.95,
-      "raw_hash": "6ee14848a922a3e0"
+      "raw_hash": "4e8e37ed2a33d109"
     },
     {
       "company": "Hyundai Mobis",
@@ -986,12 +972,12 @@
       "source_priority": 1,
       "job_key": "Hyundai Mobis|4209",
       "job_id": "4209",
-      "title": "D-9 신입-연구직 [반도체사업담당] 26년 10월 연구직 신입채용 (Chief of Semiconductor Business, entry-res.) 반도체 설계 및 시스템 응용 반도체사업담당 HW 회로 강남연구소 2026-10-13 - 2026-10-22 11:00",
+      "title": "D-8 신입-연구직 [반도체사업담당] 26년 10월 연구직 신입채용 (Chief of Semiconductor Business, entry-res.) 반도체 설계 및 시스템 응용 반도체사업담당 HW 회로 강남연구소 2026-10-13 - 2026-10-22 11:00",
       "location_signal": "",
       "detail_url": "https://careers.mobis.com/jobs-view?seq=4209",
       "parser": "requests",
       "confidence": 0.95,
-      "raw_hash": "9429c7139248d3a9"
+      "raw_hash": "f15eecac0c6b9909"
     },
     {
       "company": "KBSI",
@@ -1768,34 +1754,6 @@
       "source_type": "공식-글로벌",
       "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
       "source_priority": 2,
-      "job_key": "KLA Korea|2110029",
-      "job_id": "2110029",
-      "title": "Customer Support Engineer (Dongtan/Pyeongtaek - 인재DB등록)",
-      "location_signal": "Hwaseong-si, Korea",
-      "detail_url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/Hwaseong-si-Korea/SBU-Customer-Support-Engineer-NCG_2110029-1",
-      "parser": "workday-api",
-      "confidence": 0.99,
-      "raw_hash": "0beaab3a06a5ac2f"
-    },
-    {
-      "company": "KLA Korea",
-      "source_type": "공식-글로벌",
-      "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
-      "source_priority": 2,
-      "job_key": "KLA Korea|2110030",
-      "job_id": "2110030",
-      "title": "Customer Support Engineer (Icheon/Cheongju - 인재DB등록)",
-      "location_signal": "2개 근무지",
-      "detail_url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/Icheon-si-Gyunggi-do-Korea/SKBU-Customer-Support-Engineer-NCG_2110030-1",
-      "parser": "workday-api",
-      "confidence": 0.99,
-      "raw_hash": "6ecf82c6ebb3eab9"
-    },
-    {
-      "company": "KLA Korea",
-      "source_type": "공식-글로벌",
-      "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
-      "source_priority": 2,
       "job_key": "KLA Korea|2634048",
       "job_id": "2634048",
       "title": "Division SPTS Sr. Technical Engagement Manager",
@@ -1804,20 +1762,6 @@
       "parser": "workday-api",
       "confidence": 0.99,
       "raw_hash": "0fa4fec51ad7cebb"
-    },
-    {
-      "company": "KLA Korea",
-      "source_type": "공식-글로벌",
-      "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
-      "source_priority": 2,
-      "job_key": "KLA Korea|2634169",
-      "job_id": "2634169",
-      "title": "SKBU EBI Customer Support Engineer",
-      "location_signal": "KOR-Gyeonggi-do-Icheon-si-KLA",
-      "detail_url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/KOR-Gyeonggi-do-Icheon-si-KLA/SKBU-EBI-Customer-Support-Engineer---_2634169-10",
-      "parser": "workday-api",
-      "confidence": 0.99,
-      "raw_hash": "a6f0c00cbac2cf76"
     },
     {
       "company": "KLA Korea",
@@ -1846,20 +1790,6 @@
       "parser": "workday-api",
       "confidence": 0.99,
       "raw_hash": "725f4e0a6d2afa9e"
-    },
-    {
-      "company": "KLA Korea",
-      "source_type": "공식-글로벌",
-      "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
-      "source_priority": 2,
-      "job_key": "KLA Korea|2635984",
-      "job_id": "2635984",
-      "title": "SKBU SFS Customer Support Engineer",
-      "location_signal": "Icheon-si Gyunggi-do, Korea",
-      "detail_url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/Icheon-si-Gyunggi-do-Korea/SKBU-SFS-Customer-Support-Engineer_2635984-3",
-      "parser": "workday-api",
-      "confidence": 0.99,
-      "raw_hash": "138627c98648086a"
     },
     {
       "company": "KLA Korea",
@@ -2034,34 +1964,6 @@
       "source_type": "공식-글로벌",
       "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
       "source_priority": 2,
-      "job_key": "KLA Korea|2637921",
-      "job_id": "2637921",
-      "title": "KLAS SFS Relocation Engineer",
-      "location_signal": "Hwaseong-si, Korea",
-      "detail_url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/Hwaseong-si-Korea/KLAS-SFS-Relocation-Engineer_2637921-7",
-      "parser": "workday-api",
-      "confidence": 0.99,
-      "raw_hash": "2767fdf60684056f"
-    },
-    {
-      "company": "KLA Korea",
-      "source_type": "공식-글로벌",
-      "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
-      "source_priority": 2,
-      "job_key": "KLA Korea|2637965",
-      "job_id": "2637965",
-      "title": "SBU FaST Customer Support Engineer",
-      "location_signal": "KOR-Gyeonggi-do-Dongtan-KLA",
-      "detail_url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/KOR-Gyeonggi-do-Dongtan-KLA/Engr--Cust-Supp-2_2637965",
-      "parser": "workday-api",
-      "confidence": 0.99,
-      "raw_hash": "c72482a433d656b0"
-    },
-    {
-      "company": "KLA Korea",
-      "source_type": "공식-글로벌",
-      "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
-      "source_priority": 2,
       "job_key": "KLA Korea|2637973",
       "job_id": "2637973",
       "title": "SKBU Ebeam Customer Engagement Applications Engineer",
@@ -2182,34 +2084,6 @@
       "parser": "workday-api",
       "confidence": 0.99,
       "raw_hash": "3fe3eaef9ad9539b"
-    },
-    {
-      "company": "KLA Korea",
-      "source_type": "공식-글로벌",
-      "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
-      "source_priority": 2,
-      "job_key": "KLA Korea|2639084",
-      "job_id": "2639084",
-      "title": "SBU ECI Customer Support Engineer",
-      "location_signal": "Hwaseong-si, Korea",
-      "detail_url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/Hwaseong-si-Korea/SBU-ECI-Customer-Support-Engineer_2639084",
-      "parser": "workday-api",
-      "confidence": 0.99,
-      "raw_hash": "19275c92cd59baa8"
-    },
-    {
-      "company": "KLA Korea",
-      "source_type": "공식-글로벌",
-      "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
-      "source_priority": 2,
-      "job_key": "KLA Korea|2639085",
-      "job_id": "2639085",
-      "title": "SBU ECI Customer Support Engineer",
-      "location_signal": "Hwaseong-si, Korea",
-      "detail_url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/Hwaseong-si-Korea/SBU-ECI-Customer-Support-Engineer_2639085",
-      "parser": "workday-api",
-      "confidence": 0.99,
-      "raw_hash": "0b78db0588ad14cb"
     },
     {
       "company": "KLA Korea",
@@ -2342,20 +2216,6 @@
       "source_type": "공식-글로벌",
       "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
       "source_priority": 2,
-      "job_key": "KLA Korea|2639801",
-      "job_id": "2639801",
-      "title": "RAPID Technical Support Engineer",
-      "location_signal": "2개 근무지",
-      "detail_url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/Hwaseong-si-Korea/RAPID-Technical-Support-Engineer_2639801-1",
-      "parser": "workday-api",
-      "confidence": 0.99,
-      "raw_hash": "06b6cad937546fc1"
-    },
-    {
-      "company": "KLA Korea",
-      "source_type": "공식-글로벌",
-      "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
-      "source_priority": 2,
       "job_key": "KLA Korea|2639816",
       "job_id": "2639816",
       "title": "GSS Product Installation Support Engineer(신입가능)",
@@ -2392,20 +2252,6 @@
       "parser": "workday-api",
       "confidence": 0.99,
       "raw_hash": "709164cb60a4214d"
-    },
-    {
-      "company": "KLA Korea",
-      "source_type": "공식-글로벌",
-      "source_url": "https://kla.wd1.myworkdayjobs.com/Search",
-      "source_priority": 2,
-      "job_key": "KLA Korea|2640009",
-      "job_id": "2640009",
-      "title": "HR Business Partner",
-      "location_signal": "Hwaseong-si, Korea",
-      "detail_url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/Hwaseong-si-Korea/HR-Business-Partner_2640009-3",
-      "parser": "workday-api",
-      "confidence": 0.99,
-      "raw_hash": "b778f3374ea672ac"
     },
     {
       "company": "KLA Korea",
@@ -4094,12 +3940,12 @@
       "source_priority": 2,
       "job_key": "SK hynix|R262022",
       "job_id": "R262022",
-      "title": "청주 부속의원 독감 예방접종 의사 단기 계약직 채용 September 17, 2026(Thu) ~ October 15, 2026(Thu) D-2 SK hynix 안전보건/보건관리",
+      "title": "청주 부속의원 독감 예방접종 의사 단기 계약직 채용 September 17, 2026(Thu) ~ October 15, 2026(Thu) D-1 SK hynix 안전보건/보건관리",
       "location_signal": "청주",
       "detail_url": "https://www.skcareers.com/Recruit/Detail/R262022",
       "parser": "playwright",
       "confidence": 0.98,
-      "raw_hash": "a67360eb7c6f0710"
+      "raw_hash": "e1049e7b3c7c8a77"
     },
     {
       "company": "SK hynix",
@@ -4122,12 +3968,12 @@
       "source_priority": 2,
       "job_key": "SK hynix|R262205",
       "job_id": "R262205",
-      "title": "용인 부속의원 의료기사(임상병리사,물리치료사,방사선사) 채용 October 12, 2026(Mon) ~ October 21, 2026(Wed) SK hynix 안전보건/보건관리",
+      "title": "용인 부속의원 의료기사(임상병리사,물리치료사,방사선사) 채용 October 12, 2026(Mon) ~ October 21, 2026(Wed) D-7 SK hynix 안전보건/보건관리",
       "location_signal": "용인",
       "detail_url": "https://www.skcareers.com/Recruit/Detail/R262205",
       "parser": "playwright",
       "confidence": 0.98,
-      "raw_hash": "1822158c6bd9c3b0"
+      "raw_hash": "37fb726f2633809f"
     },
     {
       "company": "Tokyo Electron Korea",
