@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-VERSION = "2.8"
+VERSION = "2.9"
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config.json"
 DATA = ROOT / "data"
@@ -655,6 +655,24 @@ def collect_workday_api(fetcher, source: dict):
                 )
         else:
             errors.append("KOREA_FACET_NOT_FOUND")
+
+        # Phase 3: run a small set of role-family searches. Workday tenants can
+        # omit postings from broad enumeration while still returning them for a
+        # text query, so this is an independent recovery path that does not
+        # depend on hard-coded requisition IDs.
+        for search_text in [
+            "Applications Engineer",
+            "Customer Engagement Applications Engineer",
+            "Regional Development Applications Engineer",
+            "System Engineer",
+            "Product Development",
+        ]:
+            try:
+                collect_query(search_text, {}, 500)
+            except Exception as exc:
+                errors.append(
+                    f"SEARCH:{search_text}:{type(exc).__name__}:{exc}"
+                )
     elif source["company"] == "Onto Innovation Korea":
         for search_text in ["", "Korea", "Hwasung", "Hwaseong", "Applications", "Field Service"]:
             try:
@@ -953,6 +971,79 @@ def collect_nnfc_board(fetcher, source: dict):
     return list(results.values()), "; ".join(errors[:8])[:1200]
 
 
+def collect_kims_board(fetcher, source: dict):
+    if source["company"] != "KIMS":
+        return [], ""
+
+    errors = []
+    results = {}
+    html = ""
+
+    # The bare KIMS board URL can enter a redirect loop from CI runners.
+    # Adding an explicit page parameter serves the same official board without
+    # that loop, so use it as an independent fallback.
+    list_urls = [source["url"]]
+    parsed = urlparse(source["url"])
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    if "page" not in query:
+        sep = "&" if parsed.query else "?"
+        list_urls.append(source["url"] + sep + "page=1")
+
+    used_url = source["url"]
+    for list_url in list_urls:
+        try:
+            html = fetcher.request_html(list_url)
+            used_url = list_url
+            if re.search(r"wr_id=\d+", html):
+                break
+        except Exception as exc:
+            errors.append(f"list-requests:{type(exc).__name__}")
+
+    if not re.search(r"wr_id=\d+", html):
+        for list_url in reversed(list_urls):
+            try:
+                html = fetcher.browser_html(list_url)
+                used_url = list_url
+                if re.search(r"wr_id=\d+", html):
+                    break
+            except Exception as exc:
+                errors.append(f"list-browser:{type(exc).__name__}")
+
+    wr_ids = []
+    for wr_id in re.findall(r"wr_id=(\d+)", html):
+        if wr_id not in wr_ids:
+            wr_ids.append(wr_id)
+
+    base = "https://www.kims.re.kr/v17/bbx/board.php"
+    for wr_id in wr_ids[:40]:
+        url = canonical(f"{base}?bx_table=03_05&wr_id={wr_id}")
+        try:
+            response = fetcher.session.get(url, timeout=20)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "html.parser")
+            title = detail_heading(soup, "")
+            if not title:
+                continue
+            item = build_candidate(
+                source,
+                title,
+                url,
+                wr_id,
+                "",
+                "kims-board",
+                0.98,
+            )
+            if item:
+                results[item["job_key"]] = item
+        except Exception as exc:
+            errors.append(f"detail:{wr_id}:{type(exc).__name__}")
+
+    if not results and used_url != source["url"]:
+        errors.append(f"fallback-empty:{used_url}")
+
+    return list(results.values()), "; ".join(errors[:8])[:1200]
+
+
 def collect_platform_adapter(fetcher, source: dict):
     groups = []
     errors = []
@@ -986,6 +1077,12 @@ def collect_platform_adapter(fetcher, source: dict):
         groups.append(nnfc_items)
     if nnfc_error:
         errors.append(nnfc_error)
+
+    kims_items, kims_error = collect_kims_board(fetcher, source)
+    if kims_items:
+        groups.append(kims_items)
+    if kims_error:
+        errors.append(kims_error)
 
     return merge_candidates(*groups), "; ".join(errors)[:1500]
 
@@ -1260,7 +1357,7 @@ def collect_one(fetcher: Fetcher, source: dict):
         and adapter_items
     ):
         authoritative_adapter = True
-    if source["company"] in {"KBSI", "NNFC"} and adapter_items:
+    if source["company"] in {"KBSI", "NNFC", "KIMS"} and adapter_items:
         authoritative_adapter = True
 
     if authoritative_adapter:
@@ -1298,7 +1395,7 @@ def collect_one(fetcher: Fetcher, source: dict):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.8")
+    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.9")
     parser.add_argument("--company", default="", help="Optional company substring for manual debug")
     args = parser.parse_args()
 
