@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-VERSION = "2.10"
+VERSION = "2.11"
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config.json"
 DATA = ROOT / "data"
