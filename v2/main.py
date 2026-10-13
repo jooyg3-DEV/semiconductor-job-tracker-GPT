@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
-VERSION = "2.6"
+VERSION = "2.7"
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config.json"
 DATA = ROOT / "data"
@@ -1004,6 +1004,147 @@ def previous_snapshot() -> dict[str, int]:
         return {}
 
 
+def workday_detail_endpoint(url: str) -> str:
+    p = urlparse(url)
+    host = p.netloc.lower()
+    if "myworkdayjobs.com" not in host:
+        return ""
+
+    segments = [x for x in p.path.split("/") if x]
+    if not segments:
+        return ""
+
+    site_index = 0
+    if re.fullmatch(r"[a-z]{2}-[A-Z]{2}", segments[0]):
+        site_index = 1
+    if site_index >= len(segments):
+        return ""
+
+    site = segments[site_index]
+    external_segments = segments[site_index + 1:]
+    if not external_segments:
+        return ""
+    external_path = "/" + "/".join(external_segments)
+    if not external_path.startswith(("/job/", "/details/")):
+        return ""
+
+    tenant = host.split(".")[0]
+    return f"https://{host}/wday/cxs/{tenant}/{site}{external_path}"
+
+
+def probe_sentinels(fetcher: Fetcher, sentinels: list, companies: list, merged: dict):
+    recovered = []
+    checks = []
+
+    for sentinel in sentinels or []:
+        company = clean(sentinel.get("company"))
+        job_id = clean(sentinel.get("job_id"))
+        url = canonical(clean(sentinel.get("url")))
+        if not company or company not in companies or not job_id or not url:
+            continue
+
+        already_present = any(
+            item.get("company") == company and clean(item.get("job_id")) == job_id
+            for item in merged.values()
+        )
+
+        check = {
+            "company": company,
+            "job_id": job_id,
+            "url": url,
+            "state": "",
+            "detail": "",
+        }
+
+        endpoint = workday_detail_endpoint(url)
+        if not endpoint:
+            check["state"] = "UNSUPPORTED"
+            check["detail"] = "No supported official-detail probe is available for this sentinel URL."
+            checks.append(check)
+            continue
+
+        try:
+            response = fetcher.session.get(
+                endpoint,
+                timeout=20,
+                headers={"Accept": "application/json"},
+            )
+            if response.status_code == 404:
+                check["state"] = "CLOSED"
+                check["detail"] = "Official Workday detail endpoint returned 404."
+                checks.append(check)
+                continue
+
+            response.raise_for_status()
+            payload = response.json()
+            info = payload.get("jobPostingInfo") or {}
+            if not isinstance(info, dict):
+                info = {}
+
+            title = clean(
+                info.get("title")
+                or payload.get("title")
+                or sentinel.get("title")
+            )
+            location = clean(
+                info.get("location")
+                or info.get("locationText")
+                or info.get("primaryLocation")
+                or sentinel.get("location")
+            )
+
+            payload_text = clean(json.dumps(payload, ensure_ascii=False)).lower()
+            if any(token in payload_text for token in (
+                "job posting is no longer available",
+                "no longer accepting applications",
+            )):
+                check["state"] = "CLOSED"
+                check["detail"] = "Official Workday detail endpoint reports the posting as closed."
+                checks.append(check)
+                continue
+
+            # A valid Workday detail JSON response is treated as active. The job
+            # may be directly accessible even when the listing API omits it.
+            if already_present:
+                check["state"] = "ACTIVE_PRESENT"
+                check["detail"] = "Active official detail is already present in collector output."
+                checks.append(check)
+                continue
+
+            source = {
+                "company": company,
+                "source_type": "공식-상세검증",
+                "url": url,
+                "priority": int(sentinel.get("priority") or 1),
+            }
+            item = build_candidate(
+                source,
+                title or f"Known active requisition {job_id}",
+                url,
+                job_id,
+                location,
+                "sentinel-detail",
+                0.99,
+            )
+            if item:
+                recovered.append(item)
+                check["state"] = "ACTIVE_RECOVERED"
+                check["detail"] = (
+                    "Official detail is active but the listing collector missed it; "
+                    "candidate recovered through sentinel validation."
+                )
+            else:
+                check["state"] = "ERROR"
+                check["detail"] = "Official detail was active but candidate construction failed."
+            checks.append(check)
+        except Exception as exc:
+            check["state"] = "ERROR"
+            check["detail"] = f"{type(exc).__name__}: {exc}"[:1200]
+            checks.append(check)
+
+    return recovered, checks
+
+
 def write_json(path: Path, payload: dict):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -1090,7 +1231,7 @@ def collect_one(fetcher: Fetcher, source: dict):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.6")
+    parser = argparse.ArgumentParser(description="Independent GitHub blind-spot collector v2.7")
     parser.add_argument("--company", default="", help="Optional company substring for manual debug")
     args = parser.parse_args()
 
@@ -1101,6 +1242,7 @@ def main():
 
     merged = {}
     statuses = []
+    sentinel_checks = []
 
     with Fetcher() as fetcher:
         for index, source in enumerate(sources, 1):
@@ -1118,6 +1260,17 @@ def main():
                 old = merged.get(item["job_key"])
                 if old is None or item["confidence"] > old["confidence"]:
                     merged[item["job_key"]] = item
+
+        recovered, sentinel_checks = probe_sentinels(
+            fetcher,
+            cfg.get("sentinels", []),
+            companies,
+            merged,
+        )
+        for item in recovered:
+            old = merged.get(item["job_key"])
+            if old is None or item["confidence"] > old["confidence"]:
+                merged[item["job_key"]] = item
 
     candidates = sorted(merged.values(), key=lambda x: (x["company"], x["job_key"]))
     counts = {}
@@ -1156,6 +1309,30 @@ def main():
                 "source_type": status["source_type"],
                 "url": status["url"],
                 "detail": detail + " This is not proof of zero openings.",
+            })
+
+    for check in sentinel_checks:
+        if check["state"] == "ACTIVE_RECOVERED":
+            signals.append({
+                "company": check["company"],
+                "signal": "KNOWN_ACTIVE_LISTING_MISS",
+                "severity": "MEDIUM",
+                "source_type": "공식-상세검증",
+                "url": check["url"],
+                "detail": (
+                    f"Requisition {check['job_id']} is active on the official detail page "
+                    "but was absent from normal listing discovery. It was recovered into "
+                    "the candidate snapshot by sentinel validation."
+                ),
+            })
+        elif check["state"] in {"ERROR", "UNSUPPORTED"}:
+            signals.append({
+                "company": check["company"],
+                "signal": "SENTINEL_CHECK_ERROR",
+                "severity": "MEDIUM",
+                "source_type": "공식-상세검증",
+                "url": check["url"],
+                "detail": f"Requisition {check['job_id']}: {check['detail']}",
             })
 
     for company in companies:
@@ -1211,6 +1388,7 @@ def main():
         "run_id": run_id,
         "generated_at": finished_at,
         "statuses": statuses,
+        "sentinel_checks": sentinel_checks,
         "signals": signals,
     }
     run_payload = {
@@ -1224,6 +1402,10 @@ def main():
         "candidate_count": len(candidates),
         "signal_count": len(signals),
         "error_count": sum(1 for s in statuses if not s["success"]),
+        "sentinel_count": len(sentinel_checks),
+        "sentinel_recovered_count": sum(
+            1 for check in sentinel_checks if check["state"] == "ACTIVE_RECOVERED"
+        ),
         "config_generated_at": cfg.get("generated_at", ""),
         "github_sha": os.environ.get("GITHUB_SHA", ""),
         "github_event": os.environ.get("GITHUB_EVENT_NAME", "local"),
