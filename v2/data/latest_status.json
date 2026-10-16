@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "collector_version": "2.11",
-  "run_id": "20261014T015955Z",
-  "generated_at": "2026-10-14T02:11:58+00:00",
+  "run_id": "20261016T012957Z",
+  "generated_at": "2026-10-16T01:41:25+00:00",
   "statuses": [
     {
       "company": "KLA Korea",
@@ -24,11 +24,11 @@
       "success": true,
       "parser": "adapter+requests+playwright",
       "adapter_candidate_count": 49,
-      "adapter_error": "System Engineer:TRUNCATED:500/1059; Product Development:TRUNCATED:500/1036",
+      "adapter_error": "System Engineer:TRUNCATED:500/1052; Product Development:TRUNCATED:500/1028",
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 49,
-      "error": "System Engineer:TRUNCATED:500/1059; Product Development:TRUNCATED:500/1036"
+      "error": "System Engineer:TRUNCATED:500/1052; Product Development:TRUNCATED:500/1028"
     },
     {
       "company": "Lam Research Korea",
@@ -36,11 +36,11 @@
       "url": "https://opportunities.lamresearch.com/go/Search/8797500/",
       "success": true,
       "parser": "adapter+requests+playwright",
-      "adapter_candidate_count": 75,
+      "adapter_candidate_count": 78,
       "adapter_error": "",
-      "request_candidate_count": 2,
-      "browser_candidate_count": 2,
-      "candidate_count": 75,
+      "request_candidate_count": 0,
+      "browser_candidate_count": 0,
+      "candidate_count": 78,
       "error": ""
     },
     {
@@ -65,8 +65,8 @@
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
-      "browser_candidate_count": 1,
-      "candidate_count": 1,
+      "browser_candidate_count": 0,
+      "candidate_count": 0,
       "error": ""
     },
     {
@@ -80,7 +80,7 @@
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "Error: Page.goto: net::ERR_CONNECTION_RESET at https://appliedkorea.applyin.co.kr/jobs/\nCall log:\n  - navigating to \"https://appliedkorea.applyin.co.kr/jobs/\", waiting until \"domcontentloaded\"\n"
+      "error": "TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://appliedkorea.applyin.co.kr/jobs/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Applied Materials Korea",
@@ -91,8 +91,8 @@
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
-      "browser_candidate_count": 0,
-      "candidate_count": 0,
+      "browser_candidate_count": 11,
+      "candidate_count": 11,
       "error": ""
     },
     {
@@ -117,8 +117,8 @@
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
-      "browser_candidate_count": 5,
-      "candidate_count": 5,
+      "browser_candidate_count": 2,
+      "candidate_count": 2,
       "error": ""
     },
     {
@@ -156,8 +156,8 @@
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
-      "browser_candidate_count": 3,
-      "candidate_count": 3,
+      "browser_candidate_count": 2,
+      "candidate_count": 2,
       "error": ""
     },
     {
@@ -223,7 +223,7 @@
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='etri.recruitment.kr', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='etri.recruitment.kr', port=443) at 0x7f10639c09d0>, 'Connection to etri.recruitment.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://etri.recruitment.kr/\", waiting until \"domcontentloaded\"\n"
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='etri.recruitment.kr', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='etri.recruitment.kr', port=443) at 0x7f6fa1492510>, 'Connection to etri.recruitment.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://etri.recruitment.kr/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "ETRI",
@@ -314,7 +314,7 @@
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='www.saramin.co.kr', port=443): Max retries exceeded with url: /zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.saramin.co.kr', port=443) at 0x7f1063dd7ed0>, 'Connection to www.saramin.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09\", waiting until \"domcontentloaded\"\n"
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='www.saramin.co.kr', port=443): Max retries exceeded with url: /zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.saramin.co.kr', port=443) at 0x7f6fa105c250>, 'Connection to www.saramin.co.kr timed out. (connect timeout=20)')); Error: Page.goto: net::ERR_CONNECTION_RESET at https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Systems",
@@ -359,14 +359,14 @@
       "company": "Hanwha Aerospace",
       "source_type": "보조-Saramin",
       "url": "https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09",
-      "success": false,
-      "parser": "",
+      "success": true,
+      "parser": "requests",
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='www.saramin.co.kr', port=443): Max retries exceeded with url: /zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.saramin.co.kr', port=443) at 0x7f106867db50>, 'Connection to www.saramin.co.kr timed out. (connect timeout=20)')); Error: Page.goto: net::ERR_CONNECTION_RESET at https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09\", waiting until \"domcontentloaded\"\n"
+      "error": "TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Aerospace",
@@ -399,12 +399,12 @@
       "source_type": "공식-글로벌",
       "url": "https://www.asm.com/open-vacancies",
       "success": true,
-      "parser": "adapter+requests",
-      "adapter_candidate_count": 47,
+      "parser": "adapter+requests+playwright",
+      "adapter_candidate_count": 50,
       "adapter_error": "",
-      "request_candidate_count": 10,
+      "request_candidate_count": 0,
       "browser_candidate_count": 0,
-      "candidate_count": 47,
+      "candidate_count": 50,
       "error": ""
     },
     {
@@ -575,7 +575,7 @@
       "severity": "MEDIUM",
       "source_type": "공식-글로벌",
       "url": "https://kla.wd1.myworkdayjobs.com/Search",
-      "detail": "System Engineer:TRUNCATED:500/1059; Product Development:TRUNCATED:500/1036"
+      "detail": "System Engineer:TRUNCATED:500/1052; Product Development:TRUNCATED:500/1028"
     },
     {
       "company": "Lam Research Korea",
@@ -586,20 +586,20 @@
       "detail": "Source loaded but no accepted job-detail candidates were extracted. This is not proof of zero openings."
     },
     {
-      "company": "Applied Materials Korea",
+      "company": "Lam Research Korea",
       "signal": "SOURCE_EMPTY",
       "severity": "LOW",
-      "source_type": "공식-국내",
-      "url": "https://appliedkorea.applyin.co.kr/jobs/",
-      "detail": "Source loaded but no accepted job-detail candidates were extracted. Partial fetch error: Error: Page.goto: net::ERR_CONNECTION_RESET at https://appliedkorea.applyin.co.kr/jobs/\nCall log:\n  - navigating to \"https://appliedkorea.applyin.co.kr/jobs/\", waiting until \"domcontentloaded\"\n This is not proof of zero openings."
+      "source_type": "공식-글로벌",
+      "url": "https://careers.lamresearch.com/careers",
+      "detail": "Source loaded but no accepted job-detail candidates were extracted. This is not proof of zero openings."
     },
     {
       "company": "Applied Materials Korea",
       "signal": "SOURCE_EMPTY",
       "severity": "LOW",
-      "source_type": "공식-글로벌",
-      "url": "https://careers.appliedmaterials.com/careers",
-      "detail": "Source loaded but no accepted job-detail candidates were extracted. This is not proof of zero openings."
+      "source_type": "공식-국내",
+      "url": "https://appliedkorea.applyin.co.kr/jobs/",
+      "detail": "Source loaded but no accepted job-detail candidates were extracted. Partial fetch error: TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://appliedkorea.applyin.co.kr/jobs/\", waiting until \"domcontentloaded\"\n This is not proof of zero openings."
     },
     {
       "company": "ASML Korea",
@@ -647,7 +647,7 @@
       "severity": "HIGH",
       "source_type": "공식-채용시스템",
       "url": "https://etri.recruitment.kr/",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='etri.recruitment.kr', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='etri.recruitment.kr', port=443) at 0x7f10639c09d0>, 'Connection to etri.recruitment.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://etri.recruitment.kr/\", waiting until \"domcontentloaded\"\n"
+      "detail": "ConnectTimeout: HTTPSConnectionPool(host='etri.recruitment.kr', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='etri.recruitment.kr', port=443) at 0x7f6fa1492510>, 'Connection to etri.recruitment.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://etri.recruitment.kr/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "NNFC",
@@ -687,7 +687,7 @@
       "severity": "HIGH",
       "source_type": "보조-Saramin",
       "url": "https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='www.saramin.co.kr', port=443): Max retries exceeded with url: /zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.saramin.co.kr', port=443) at 0x7f1063dd7ed0>, 'Connection to www.saramin.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09\", waiting until \"domcontentloaded\"\n"
+      "detail": "ConnectTimeout: HTTPSConnectionPool(host='www.saramin.co.kr', port=443): Max retries exceeded with url: /zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.saramin.co.kr', port=443) at 0x7f6fa105c250>, 'Connection to www.saramin.co.kr timed out. (connect timeout=20)')); Error: Page.goto: net::ERR_CONNECTION_RESET at https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Systems",
@@ -715,11 +715,11 @@
     },
     {
       "company": "Hanwha Aerospace",
-      "signal": "SOURCE_ERROR",
-      "severity": "HIGH",
+      "signal": "SOURCE_EMPTY",
+      "severity": "LOW",
       "source_type": "보조-Saramin",
       "url": "https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='www.saramin.co.kr', port=443): Max retries exceeded with url: /zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.saramin.co.kr', port=443) at 0x7f106867db50>, 'Connection to www.saramin.co.kr timed out. (connect timeout=20)')); Error: Page.goto: net::ERR_CONNECTION_RESET at https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09\", waiting until \"domcontentloaded\"\n"
+      "detail": "Source loaded but no accepted job-detail candidates were extracted. Partial fetch error: TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09\", waiting until \"domcontentloaded\"\n This is not proof of zero openings."
     },
     {
       "company": "Hanwha Aerospace",
