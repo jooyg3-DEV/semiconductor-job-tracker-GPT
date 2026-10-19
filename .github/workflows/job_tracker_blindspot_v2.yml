@@ -7,7 +7,9 @@ on:
     paths:
       - 'v2/main.py'
   schedule:
-    - cron: '20 23 * * 0,2,4'
+    # 06:00 KST Monday/Wednesday/Friday (UTC Sunday/Tuesday/Thursday 21:00).
+    # GitHub scheduling can be delayed; Career 09:00 run must independently verify snapshot freshness.
+    - cron: '0 21 * * 0,2,4'
   workflow_dispatch:
     inputs:
       company:
