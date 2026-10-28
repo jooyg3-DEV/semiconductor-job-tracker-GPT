@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "collector_version": "2.11",
-  "run_id": "20261025T225249Z",
-  "generated_at": "2026-10-25T23:06:20+00:00",
+  "run_id": "20261028T000758Z",
+  "generated_at": "2026-10-28T00:24:11+00:00",
   "statuses": [
     {
       "company": "KLA Korea",
@@ -23,12 +23,12 @@
       "url": "https://kla.wd1.myworkdayjobs.com/Search",
       "success": true,
       "parser": "adapter+requests+playwright",
-      "adapter_candidate_count": 71,
-      "adapter_error": "System Engineer:TRUNCATED:500/1096; Product Development:TRUNCATED:500/1020",
+      "adapter_candidate_count": 69,
+      "adapter_error": "System Engineer:TRUNCATED:500/1085; Product Development:TRUNCATED:500/1009",
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
-      "candidate_count": 71,
-      "error": "System Engineer:TRUNCATED:500/1096; Product Development:TRUNCATED:500/1020"
+      "candidate_count": 69,
+      "error": "System Engineer:TRUNCATED:500/1085; Product Development:TRUNCATED:500/1009"
     },
     {
       "company": "Lam Research Korea",
@@ -36,11 +36,11 @@
       "url": "https://opportunities.lamresearch.com/go/Search/8797500/",
       "success": true,
       "parser": "adapter+requests+playwright",
-      "adapter_candidate_count": 78,
+      "adapter_candidate_count": 80,
       "adapter_error": "",
-      "request_candidate_count": 2,
-      "browser_candidate_count": 2,
-      "candidate_count": 78,
+      "request_candidate_count": 3,
+      "browser_candidate_count": 3,
+      "candidate_count": 80,
       "error": ""
     },
     {
@@ -117,8 +117,8 @@
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
-      "browser_candidate_count": 2,
-      "candidate_count": 2,
+      "browser_candidate_count": 1,
+      "candidate_count": 1,
       "error": ""
     },
     {
@@ -145,7 +145,7 @@
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='talent.skhynix.com', port=443): Max retries exceeded with url: /hub/ko/apply/job (Caused by ConnectTimeoutError(<HTTPSConnection(host='talent.skhynix.com', port=443) at 0x79c694ff26d0>, 'Connection to talent.skhynix.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://talent.skhynix.com/hub/ko/apply/job\", waiting until \"domcontentloaded\"\n"
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='talent.skhynix.com', port=443): Max retries exceeded with url: /hub/ko/apply/job (Caused by ConnectTimeoutError(<HTTPSConnection(host='talent.skhynix.com', port=443) at 0x7cceec405650>, 'Connection to talent.skhynix.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://talent.skhynix.com/hub/ko/apply/job\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "SK hynix",
@@ -223,7 +223,7 @@
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='etri.recruitment.kr', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='etri.recruitment.kr', port=443) at 0x79c694e26ed0>, 'Connection to etri.recruitment.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://etri.recruitment.kr/\", waiting until \"domcontentloaded\"\n"
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='etri.recruitment.kr', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='etri.recruitment.kr', port=443) at 0x7ccee7c856d0>, 'Connection to etri.recruitment.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://etri.recruitment.kr/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "ETRI",
@@ -288,7 +288,7 @@
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='www.hanwhain.com', port=443): Max retries exceeded with url: /web/apply/notification/list.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.hanwhain.com', port=443) at 0x79c68fc54a90>, 'Connection to www.hanwhain.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.hanwhain.com/web/apply/notification/list.do\", waiting until \"domcontentloaded\"\n"
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='www.hanwhain.com', port=443): Max retries exceeded with url: /web/apply/notification/list.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.hanwhain.com', port=443) at 0x7cceec2ba850>, 'Connection to www.hanwhain.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.hanwhain.com/web/apply/notification/list.do\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Systems",
@@ -320,14 +320,14 @@
       "company": "Hanwha Systems",
       "source_type": "보조-JobKorea",
       "url": "https://www.jobkorea.co.kr/company/1689805/Recruit",
-      "success": true,
-      "parser": "requests+playwright",
+      "success": false,
+      "parser": "",
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": ""
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='www.jobkorea.co.kr', port=443): Max retries exceeded with url: /company/1689805/Recruit (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.jobkorea.co.kr', port=443) at 0x7ccee762dd10>, 'Connection to www.jobkorea.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.jobkorea.co.kr/company/1689805/Recruit\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Aerospace",
@@ -340,20 +340,20 @@
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='www.hanwhain.com', port=443): Max retries exceeded with url: /web/apply/notification/list.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.hanwhain.com', port=443) at 0x79c6942d4d10>, 'Connection to www.hanwhain.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.hanwhain.com/web/apply/notification/list.do\", waiting until \"domcontentloaded\"\n"
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='www.hanwhain.com', port=443): Max retries exceeded with url: /web/apply/notification/list.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.hanwhain.com', port=443) at 0x7ccee762cb90>, 'Connection to www.hanwhain.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.hanwhain.com/web/apply/notification/list.do\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Aerospace",
       "source_type": "보조-JobKorea",
       "url": "https://www.jobkorea.co.kr/company/1746186/Recruit",
-      "success": true,
-      "parser": "requests+playwright",
+      "success": false,
+      "parser": "",
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": ""
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='www.jobkorea.co.kr', port=443): Max retries exceeded with url: /company/1746186/Recruit (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.jobkorea.co.kr', port=443) at 0x7cceec1c2650>, 'Connection to www.jobkorea.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.jobkorea.co.kr/company/1746186/Recruit\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Aerospace",
@@ -366,7 +366,7 @@
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "Error: Page.goto: net::ERR_CONNECTION_RESET at https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09\", waiting until \"domcontentloaded\"\n"
+      "error": "TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Aerospace",
@@ -399,10 +399,10 @@
       "source_type": "공식-글로벌",
       "url": "https://www.asm.com/open-vacancies",
       "success": true,
-      "parser": "adapter+requests",
+      "parser": "adapter+requests+playwright",
       "adapter_candidate_count": 52,
       "adapter_error": "",
-      "request_candidate_count": 10,
+      "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 52,
       "error": ""
@@ -465,11 +465,11 @@
       "url": "https://wd1.myworkdaysite.com/recruiting/onto/ONTO_Careers",
       "success": true,
       "parser": "adapter+requests+playwright",
-      "adapter_candidate_count": 15,
+      "adapter_candidate_count": 14,
       "adapter_error": "",
       "request_candidate_count": 0,
       "browser_candidate_count": 2,
-      "candidate_count": 17,
+      "candidate_count": 16,
       "error": ""
     },
     {
@@ -507,8 +507,8 @@
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
-      "browser_candidate_count": 3,
-      "candidate_count": 3,
+      "browser_candidate_count": 13,
+      "candidate_count": 13,
       "error": ""
     },
     {
@@ -575,7 +575,7 @@
       "severity": "MEDIUM",
       "source_type": "공식-글로벌",
       "url": "https://kla.wd1.myworkdayjobs.com/Search",
-      "detail": "System Engineer:TRUNCATED:500/1096; Product Development:TRUNCATED:500/1020"
+      "detail": "System Engineer:TRUNCATED:500/1085; Product Development:TRUNCATED:500/1009"
     },
     {
       "company": "Lam Research Korea",
@@ -631,7 +631,7 @@
       "severity": "HIGH",
       "source_type": "공식-채용",
       "url": "https://talent.skhynix.com/hub/ko/apply/job",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='talent.skhynix.com', port=443): Max retries exceeded with url: /hub/ko/apply/job (Caused by ConnectTimeoutError(<HTTPSConnection(host='talent.skhynix.com', port=443) at 0x79c694ff26d0>, 'Connection to talent.skhynix.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://talent.skhynix.com/hub/ko/apply/job\", waiting until \"domcontentloaded\"\n"
+      "detail": "ConnectTimeout: HTTPSConnectionPool(host='talent.skhynix.com', port=443): Max retries exceeded with url: /hub/ko/apply/job (Caused by ConnectTimeoutError(<HTTPSConnection(host='talent.skhynix.com', port=443) at 0x7cceec405650>, 'Connection to talent.skhynix.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://talent.skhynix.com/hub/ko/apply/job\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Samsung Display",
@@ -655,7 +655,7 @@
       "severity": "HIGH",
       "source_type": "공식-채용시스템",
       "url": "https://etri.recruitment.kr/",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='etri.recruitment.kr', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='etri.recruitment.kr', port=443) at 0x79c694e26ed0>, 'Connection to etri.recruitment.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://etri.recruitment.kr/\", waiting until \"domcontentloaded\"\n"
+      "detail": "ConnectTimeout: HTTPSConnectionPool(host='etri.recruitment.kr', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='etri.recruitment.kr', port=443) at 0x7ccee7c856d0>, 'Connection to etri.recruitment.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://etri.recruitment.kr/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "NNFC",
@@ -679,7 +679,7 @@
       "severity": "HIGH",
       "source_type": "공식-통합채용",
       "url": "https://www.hanwhain.com/web/apply/notification/list.do",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='www.hanwhain.com', port=443): Max retries exceeded with url: /web/apply/notification/list.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.hanwhain.com', port=443) at 0x79c68fc54a90>, 'Connection to www.hanwhain.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.hanwhain.com/web/apply/notification/list.do\", waiting until \"domcontentloaded\"\n"
+      "detail": "ConnectTimeout: HTTPSConnectionPool(host='www.hanwhain.com', port=443): Max retries exceeded with url: /web/apply/notification/list.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.hanwhain.com', port=443) at 0x7cceec2ba850>, 'Connection to www.hanwhain.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.hanwhain.com/web/apply/notification/list.do\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Systems",
@@ -699,11 +699,11 @@
     },
     {
       "company": "Hanwha Systems",
-      "signal": "SOURCE_EMPTY",
-      "severity": "LOW",
+      "signal": "SOURCE_ERROR",
+      "severity": "HIGH",
       "source_type": "보조-JobKorea",
       "url": "https://www.jobkorea.co.kr/company/1689805/Recruit",
-      "detail": "Source loaded but no accepted job-detail candidates were extracted. This is not proof of zero openings."
+      "detail": "ConnectTimeout: HTTPSConnectionPool(host='www.jobkorea.co.kr', port=443): Max retries exceeded with url: /company/1689805/Recruit (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.jobkorea.co.kr', port=443) at 0x7ccee762dd10>, 'Connection to www.jobkorea.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.jobkorea.co.kr/company/1689805/Recruit\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Aerospace",
@@ -711,15 +711,15 @@
       "severity": "HIGH",
       "source_type": "공식-통합채용",
       "url": "https://www.hanwhain.com/web/apply/notification/list.do",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='www.hanwhain.com', port=443): Max retries exceeded with url: /web/apply/notification/list.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.hanwhain.com', port=443) at 0x79c6942d4d10>, 'Connection to www.hanwhain.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.hanwhain.com/web/apply/notification/list.do\", waiting until \"domcontentloaded\"\n"
+      "detail": "ConnectTimeout: HTTPSConnectionPool(host='www.hanwhain.com', port=443): Max retries exceeded with url: /web/apply/notification/list.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.hanwhain.com', port=443) at 0x7ccee762cb90>, 'Connection to www.hanwhain.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.hanwhain.com/web/apply/notification/list.do\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Aerospace",
-      "signal": "SOURCE_EMPTY",
-      "severity": "LOW",
+      "signal": "SOURCE_ERROR",
+      "severity": "HIGH",
       "source_type": "보조-JobKorea",
       "url": "https://www.jobkorea.co.kr/company/1746186/Recruit",
-      "detail": "Source loaded but no accepted job-detail candidates were extracted. This is not proof of zero openings."
+      "detail": "ConnectTimeout: HTTPSConnectionPool(host='www.jobkorea.co.kr', port=443): Max retries exceeded with url: /company/1746186/Recruit (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.jobkorea.co.kr', port=443) at 0x7cceec1c2650>, 'Connection to www.jobkorea.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.jobkorea.co.kr/company/1746186/Recruit\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Aerospace",
@@ -727,7 +727,7 @@
       "severity": "LOW",
       "source_type": "보조-Saramin",
       "url": "https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09",
-      "detail": "Source loaded but no accepted job-detail candidates were extracted. Partial fetch error: Error: Page.goto: net::ERR_CONNECTION_RESET at https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09\", waiting until \"domcontentloaded\"\n This is not proof of zero openings."
+      "detail": "Source loaded but no accepted job-detail candidates were extracted. Partial fetch error: TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=czZ2bkg3d1RqSFFkSXFEdjRiOURVZz09\", waiting until \"domcontentloaded\"\n This is not proof of zero openings."
     },
     {
       "company": "Hanwha Aerospace",
@@ -776,14 +776,6 @@
       "source_type": "공식-상세검증",
       "url": "https://kla.wd1.myworkdayjobs.com/en-US/Search/job/SKBU-FaST-Customer-Engagement-Applications-Engineer---_2637402-7",
       "detail": "Requisition 2637402: API probe failed (HTTPError: 403 Client Error: Forbidden for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/job/SKBU-FaST-Customer-Engagement-Applications-Engineer---_2637402-7); browser fallback failed (RuntimeError: Rendered detail page did not contain enough active-job evidence)"
-    },
-    {
-      "company": "Applied Materials Korea",
-      "signal": "COUNT_DROP",
-      "severity": "MEDIUM",
-      "source_type": "",
-      "url": "",
-      "detail": "Candidate count dropped from 11 to 0."
     }
   ]
 }
