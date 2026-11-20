@@ -1,17 +1,17 @@
 {
   "schema_version": 2,
   "collector_version": "2.11",
-  "run_id": "20261118T023907Z",
-  "started_at": "2026-11-18T02:39:07+00:00",
-  "finished_at": "2026-11-18T02:49:34+00:00",
+  "run_id": "20261120T015605Z",
+  "started_at": "2026-11-20T01:56:05+00:00",
+  "finished_at": "2026-11-20T02:05:24+00:00",
   "company_count": 27,
   "source_count": 42,
-  "candidate_count": 250,
-  "signal_count": 29,
+  "candidate_count": 168,
+  "signal_count": 33,
   "error_count": 1,
   "sentinel_count": 1,
   "sentinel_recovered_count": 0,
   "config_generated_at": "2026-10-13",
-  "github_sha": "e85a206a5efc8196558fd083c725ce73243e4b58",
+  "github_sha": "d38ea0188afe50c1076e2e1247cb4d955a510725",
   "github_event": "schedule"
 }
