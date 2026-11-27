@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "collector_version": "2.11",
-  "run_id": "20261125T035115Z",
-  "generated_at": "2026-11-25T04:03:00+00:00",
+  "run_id": "20261127T031952Z",
+  "generated_at": "2026-11-27T03:30:01+00:00",
   "statuses": [
     {
       "company": "KLA Korea",
@@ -22,12 +22,12 @@
       "source_type": "공식-글로벌",
       "url": "https://kla.wd1.myworkdayjobs.com/Search",
       "success": true,
-      "parser": "adapter+playwright",
-      "adapter_candidate_count": 1,
+      "parser": "playwright",
+      "adapter_candidate_count": 0,
       "adapter_error": "ALL:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; KOREA_FACET_NOT_FOUND; SEARCH:Applications Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:Customer Engagement Applications Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:Regional Development Applications Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:System Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:Product Development:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs",
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
-      "candidate_count": 1,
+      "candidate_count": 0,
       "error": "ALL:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; KOREA_FACET_NOT_FOUND; SEARCH:Applications Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:Customer Engagement Applications Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:Regional Development Applications Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:System Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:Product Development:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; HTTPError: 429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/Search"
     },
     {
@@ -65,8 +65,8 @@
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
-      "browser_candidate_count": 0,
-      "candidate_count": 0,
+      "browser_candidate_count": 2,
+      "candidate_count": 2,
       "error": ""
     },
     {
@@ -80,7 +80,7 @@
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='appliedkorea.applyin.co.kr', port=443): Max retries exceeded with url: /jobs/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='appliedkorea.applyin.co.kr', port=443) at 0x7e18307ea050>, 'Connection to appliedkorea.applyin.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://appliedkorea.applyin.co.kr/jobs/\", waiting until \"domcontentloaded\"\n"
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='appliedkorea.applyin.co.kr', port=443): Max retries exceeded with url: /jobs/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='appliedkorea.applyin.co.kr', port=443) at 0x7933cfde2490>, 'Connection to appliedkorea.applyin.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://appliedkorea.applyin.co.kr/jobs/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Applied Materials Korea",
@@ -117,8 +117,8 @@
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
-      "browser_candidate_count": 0,
-      "candidate_count": 0,
+      "browser_candidate_count": 4,
+      "candidate_count": 4,
       "error": ""
     },
     {
@@ -156,8 +156,8 @@
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
-      "browser_candidate_count": 1,
-      "candidate_count": 1,
+      "browser_candidate_count": 3,
+      "candidate_count": 3,
       "error": ""
     },
     {
@@ -223,7 +223,7 @@
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='etri.recruitment.kr', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='etri.recruitment.kr', port=443) at 0x7e18307f7190>, 'Connection to etri.recruitment.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://etri.recruitment.kr/\", waiting until \"domcontentloaded\"\n"
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='etri.recruitment.kr', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='etri.recruitment.kr', port=443) at 0x7933cfdd8610>, 'Connection to etri.recruitment.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://etri.recruitment.kr/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "ETRI",
@@ -314,20 +314,20 @@
       "request_candidate_count": 5,
       "browser_candidate_count": 0,
       "candidate_count": 5,
-      "error": "Error: Page.goto: net::ERR_CONNECTION_RESET at https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09\", waiting until \"domcontentloaded\"\n"
+      "error": "TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.saramin.co.kr/zf_user/company-info/view-inner-recruit?csn=UGh5Q0R6M1piV1kzcUJRQXgwUmx2dz09\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Hanwha Systems",
       "source_type": "보조-JobKorea",
       "url": "https://www.jobkorea.co.kr/company/1689805/Recruit",
-      "success": false,
-      "parser": "",
+      "success": true,
+      "parser": "requests+playwright",
       "adapter_candidate_count": 0,
       "adapter_error": "",
-      "request_candidate_count": 0,
-      "browser_candidate_count": 0,
-      "candidate_count": 0,
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='www.jobkorea.co.kr', port=443): Max retries exceeded with url: /company/1689805/Recruit (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.jobkorea.co.kr', port=443) at 0x7e1830cc5390>, 'Connection to www.jobkorea.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.jobkorea.co.kr/company/1689805/Recruit\", waiting until \"domcontentloaded\"\n"
+      "request_candidate_count": 4,
+      "browser_candidate_count": 4,
+      "candidate_count": 4,
+      "error": ""
     },
     {
       "company": "Hanwha Aerospace",
@@ -346,14 +346,14 @@
       "company": "Hanwha Aerospace",
       "source_type": "보조-JobKorea",
       "url": "https://www.jobkorea.co.kr/company/1746186/Recruit",
-      "success": false,
-      "parser": "",
+      "success": true,
+      "parser": "requests+playwright",
       "adapter_candidate_count": 0,
       "adapter_error": "",
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='www.jobkorea.co.kr', port=443): Max retries exceeded with url: /company/1746186/Recruit (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.jobkorea.co.kr', port=443) at 0x7e1830511d50>, 'Connection to www.jobkorea.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.jobkorea.co.kr/company/1746186/Recruit\", waiting until \"domcontentloaded\"\n"
+      "error": ""
     },
     {
       "company": "Hanwha Aerospace",
@@ -400,11 +400,11 @@
       "url": "https://www.asm.com/open-vacancies",
       "success": true,
       "parser": "adapter+requests",
-      "adapter_candidate_count": 56,
+      "adapter_candidate_count": 58,
       "adapter_error": "",
-      "request_candidate_count": 10,
+      "request_candidate_count": 1,
       "browser_candidate_count": 0,
-      "candidate_count": 56,
+      "candidate_count": 58,
       "error": ""
     },
     {
@@ -464,13 +464,13 @@
       "source_type": "공식-글로벌",
       "url": "https://wd1.myworkdaysite.com/recruiting/onto/ONTO_Careers",
       "success": true,
-      "parser": "requests+playwright",
-      "adapter_candidate_count": 0,
-      "adapter_error": "ALL:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Korea:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Hwasung:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Hwaseong:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Applications:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Field Service:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs",
+      "parser": "adapter+requests+playwright",
+      "adapter_candidate_count": 5,
+      "adapter_error": "ALL:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Korea:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Field Service:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs",
       "request_candidate_count": 0,
-      "browser_candidate_count": 1,
-      "candidate_count": 1,
-      "error": "ALL:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Korea:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Hwasung:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Hwaseong:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Applications:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Field Service:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs"
+      "browser_candidate_count": 0,
+      "candidate_count": 5,
+      "error": "ALL:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Korea:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Field Service:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs"
     },
     {
       "company": "DB HiTek",
@@ -483,7 +483,7 @@
       "request_candidate_count": 0,
       "browser_candidate_count": 0,
       "candidate_count": 0,
-      "error": "ConnectTimeout: HTTPSConnectionPool(host='dbhitek-recruit.com', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='dbhitek-recruit.com', port=443) at 0x7e182bd75c10>, 'Connection to dbhitek-recruit.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://dbhitek-recruit.com/\", waiting until \"domcontentloaded\"\n"
+      "error": "ConnectTimeout: HTTPSConnectionPool(host='dbhitek-recruit.com', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='dbhitek-recruit.com', port=443) at 0x7933d44db450>, 'Connection to dbhitek-recruit.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://dbhitek-recruit.com/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Magnachip",
@@ -578,6 +578,14 @@
       "detail": "ALL:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; KOREA_FACET_NOT_FOUND; SEARCH:Applications Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:Customer Engagement Applications Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:Regional Development Applications Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:System Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:Product Development:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs"
     },
     {
+      "company": "KLA Korea",
+      "signal": "SOURCE_EMPTY",
+      "severity": "LOW",
+      "source_type": "공식-글로벌",
+      "url": "https://kla.wd1.myworkdayjobs.com/Search",
+      "detail": "Source loaded but no accepted job-detail candidates were extracted. Partial fetch error: ALL:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; KOREA_FACET_NOT_FOUND; SEARCH:Applications Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:Customer Engagement Applications Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:Regional Development Applications Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:System Engineer:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; SEARCH:Product Development:HTTPError:429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs; HTTPError: 429 Client Error: Too Many Requests for url: https://kla.wd1.myworkdayjobs.com/Search This is not proof of zero openings."
+    },
+    {
       "company": "Lam Research Korea",
       "signal": "SOURCE_EMPTY",
       "severity": "LOW",
@@ -594,20 +602,12 @@
       "detail": "Source loaded but no accepted job-detail candidates were extracted. This is not proof of zero openings."
     },
     {
-      "company": "Lam Research Korea",
-      "signal": "SOURCE_EMPTY",
-      "severity": "LOW",
-      "source_type": "공식-글로벌",
-      "url": "https://careers.lamresearch.com/careers",
-      "detail": "Source loaded but no accepted job-detail candidates were extracted. This is not proof of zero openings."
-    },
-    {
       "company": "Applied Materials Korea",
       "signal": "SOURCE_ERROR",
       "severity": "HIGH",
       "source_type": "공식-국내",
       "url": "https://appliedkorea.applyin.co.kr/jobs/",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='appliedkorea.applyin.co.kr', port=443): Max retries exceeded with url: /jobs/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='appliedkorea.applyin.co.kr', port=443) at 0x7e18307ea050>, 'Connection to appliedkorea.applyin.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://appliedkorea.applyin.co.kr/jobs/\", waiting until \"domcontentloaded\"\n"
+      "detail": "ConnectTimeout: HTTPSConnectionPool(host='appliedkorea.applyin.co.kr', port=443): Max retries exceeded with url: /jobs/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='appliedkorea.applyin.co.kr', port=443) at 0x7933cfde2490>, 'Connection to appliedkorea.applyin.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://appliedkorea.applyin.co.kr/jobs/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "Applied Materials Korea",
@@ -623,14 +623,6 @@
       "severity": "LOW",
       "source_type": "공식-국내",
       "url": "https://asmlkorea.careerlink.kr/jobs",
-      "detail": "Source loaded but no accepted job-detail candidates were extracted. This is not proof of zero openings."
-    },
-    {
-      "company": "ASML Korea",
-      "signal": "SOURCE_EMPTY",
-      "severity": "LOW",
-      "source_type": "공식-글로벌",
-      "url": "https://www.asml.com/en/careers/find-your-job",
       "detail": "Source loaded but no accepted job-detail candidates were extracted. This is not proof of zero openings."
     },
     {
@@ -671,7 +663,7 @@
       "severity": "HIGH",
       "source_type": "공식-채용시스템",
       "url": "https://etri.recruitment.kr/",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='etri.recruitment.kr', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='etri.recruitment.kr', port=443) at 0x7e18307f7190>, 'Connection to etri.recruitment.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://etri.recruitment.kr/\", waiting until \"domcontentloaded\"\n"
+      "detail": "ConnectTimeout: HTTPSConnectionPool(host='etri.recruitment.kr', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='etri.recruitment.kr', port=443) at 0x7933cfdd8610>, 'Connection to etri.recruitment.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://etri.recruitment.kr/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "NNFC",
@@ -706,14 +698,6 @@
       "detail": "Source loaded but no accepted job-detail candidates were extracted. Partial fetch error: HTTPError: 403 Client Error: Forbidden for url: https://www.catch.co.kr/Comp/RecruitInfo/128888 This is not proof of zero openings."
     },
     {
-      "company": "Hanwha Systems",
-      "signal": "SOURCE_ERROR",
-      "severity": "HIGH",
-      "source_type": "보조-JobKorea",
-      "url": "https://www.jobkorea.co.kr/company/1689805/Recruit",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='www.jobkorea.co.kr', port=443): Max retries exceeded with url: /company/1689805/Recruit (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.jobkorea.co.kr', port=443) at 0x7e1830cc5390>, 'Connection to www.jobkorea.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.jobkorea.co.kr/company/1689805/Recruit\", waiting until \"domcontentloaded\"\n"
-    },
-    {
       "company": "Hanwha Aerospace",
       "signal": "SOURCE_EMPTY",
       "severity": "LOW",
@@ -723,11 +707,11 @@
     },
     {
       "company": "Hanwha Aerospace",
-      "signal": "SOURCE_ERROR",
-      "severity": "HIGH",
+      "signal": "SOURCE_EMPTY",
+      "severity": "LOW",
       "source_type": "보조-JobKorea",
       "url": "https://www.jobkorea.co.kr/company/1746186/Recruit",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='www.jobkorea.co.kr', port=443): Max retries exceeded with url: /company/1746186/Recruit (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.jobkorea.co.kr', port=443) at 0x7e1830511d50>, 'Connection to www.jobkorea.co.kr timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://www.jobkorea.co.kr/company/1746186/Recruit\", waiting until \"domcontentloaded\"\n"
+      "detail": "Source loaded but no accepted job-detail candidates were extracted. This is not proof of zero openings."
     },
     {
       "company": "Hanwha Aerospace",
@@ -775,7 +759,7 @@
       "severity": "MEDIUM",
       "source_type": "공식-글로벌",
       "url": "https://wd1.myworkdaysite.com/recruiting/onto/ONTO_Careers",
-      "detail": "ALL:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Korea:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Hwasung:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Hwaseong:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Applications:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Field Service:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs"
+      "detail": "ALL:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Korea:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs; Field Service:HTTPError:429 Client Error: Too Many Requests for url: https://onto.wd1.myworkdayjobs.com/wday/cxs/onto/ONTO_Careers/jobs"
     },
     {
       "company": "DB HiTek",
@@ -783,7 +767,7 @@
       "severity": "HIGH",
       "source_type": "공식-채용",
       "url": "https://dbhitek-recruit.com/",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='dbhitek-recruit.com', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='dbhitek-recruit.com', port=443) at 0x7e182bd75c10>, 'Connection to dbhitek-recruit.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://dbhitek-recruit.com/\", waiting until \"domcontentloaded\"\n"
+      "detail": "ConnectTimeout: HTTPSConnectionPool(host='dbhitek-recruit.com', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='dbhitek-recruit.com', port=443) at 0x7933d44db450>, 'Connection to dbhitek-recruit.com timed out. (connect timeout=20)')); TimeoutError: Page.goto: Timeout 40000ms exceeded.\nCall log:\n  - navigating to \"https://dbhitek-recruit.com/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "company": "LX Semicon",
@@ -807,7 +791,7 @@
       "severity": "HIGH",
       "source_type": "",
       "url": "",
-      "detail": "Only 1 candidates were enumerated; expected at least 5 for blind-spot coverage. Treat this as incomplete collection, not as zero openings."
+      "detail": "Only 0 candidates were enumerated; expected at least 5 for blind-spot coverage. Treat this as incomplete collection, not as zero openings."
     },
     {
       "company": "Lam Research Korea",
@@ -815,15 +799,7 @@
       "severity": "HIGH",
       "source_type": "",
       "url": "",
-      "detail": "Only 0 candidates were enumerated; expected at least 5 for blind-spot coverage. Treat this as incomplete collection, not as zero openings."
-    },
-    {
-      "company": "ASML Korea",
-      "signal": "COVERAGE_SUSPECT",
-      "severity": "HIGH",
-      "source_type": "",
-      "url": "",
-      "detail": "Only 0 candidates were enumerated; expected at least 1 for blind-spot coverage. Treat this as incomplete collection, not as zero openings."
+      "detail": "Only 2 candidates were enumerated; expected at least 5 for blind-spot coverage. Treat this as incomplete collection, not as zero openings."
     }
   ]
 }
